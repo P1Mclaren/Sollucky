@@ -30,12 +30,12 @@ export function Navbar() {
             Home
           </Link>
           <Link
-            to="/dashboard"
+            to="/profile"
             className={`text-sm font-medium transition-colors ${
-              isActive('/dashboard') ? 'text-primary' : 'text-foreground hover:text-primary'
+              isActive('/profile') ? 'text-primary' : 'text-foreground hover:text-primary'
             }`}
           >
-            Dashboard
+            Profile
           </Link>
         </div>
         

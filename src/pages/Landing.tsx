@@ -76,20 +76,6 @@ export default function Landing() {
                   Pre-Order Tickets
                 </Button>
               </motion.div>
-              <motion.div initial={{
-              opacity: 0,
-              scale: 0.9
-            }} animate={{
-              opacity: 1,
-              scale: 1
-            }} transition={{
-              duration: 0.5,
-              delay: 0.6
-            }}>
-                <Link to="/dashboard">
-                  
-                </Link>
-              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -195,7 +181,7 @@ export default function Landing() {
                 </motion.div>
               </div>
 
-              <Link to="/dashboard">
+              <Link to="/profile">
                 <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                   Pre-Order Now
                 </Button>

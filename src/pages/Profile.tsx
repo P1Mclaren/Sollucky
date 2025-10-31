@@ -11,7 +11,7 @@ import { ParticleBackground } from '@/components/ParticleBackground';
 import { Wallet, TrendingUp, Ticket, Clock, ArrowDownToLine } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function Dashboard() {
+export default function Profile() {
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
   const [balance, setBalance] = useState<number>(0);
@@ -124,7 +124,7 @@ export default function Dashboard() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="font-orbitron text-4xl md:text-5xl font-bold mb-4 text-glow-purple">
-            Wallet Dashboard
+            Wallet Profile
           </h1>
           {connected && publicKey && (
             <p className="text-sm text-muted-foreground mb-8">

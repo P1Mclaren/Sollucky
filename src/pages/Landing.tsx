@@ -7,21 +7,23 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { LotteryCard } from '@/components/LotteryCard';
 import { FAQ } from '@/components/FAQ';
-
 export default function Landing() {
-  return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+  return <div className="min-h-screen bg-background relative overflow-hidden">
       <ParticleBackground />
       <Navbar />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-4">
         <div className="container mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 30
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.8
+        }}>
             <div className="inline-block mb-6 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-medium">
               Powered by Solana Blockchain
             </div>
@@ -35,12 +37,16 @@ export default function Landing() {
             </p>
 
             {/* Platform Status */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="inline-block mb-12"
-            >
+            <motion.div initial={{
+            scale: 0.9,
+            opacity: 0
+          }} animate={{
+            scale: 1,
+            opacity: 1
+          }} transition={{
+            duration: 0.6,
+            delay: 0.3
+          }} className="inline-block mb-12">
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-3xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
                 <div className="relative bg-card/80 backdrop-blur-sm border border-primary/50 rounded-3xl p-8 md:p-10">
@@ -54,28 +60,34 @@ export default function Landing() {
             </motion.div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
-              >
-                <Button 
-                  size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-6 text-lg"
-                  onClick={() => document.getElementById('pre-order')?.scrollIntoView({ behavior: 'smooth' })}
-                >
+              <motion.div initial={{
+              opacity: 0,
+              scale: 0.9
+            }} animate={{
+              opacity: 1,
+              scale: 1
+            }} transition={{
+              duration: 0.5,
+              delay: 0.5
+            }}>
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-6 text-lg" onClick={() => document.getElementById('pre-order')?.scrollIntoView({
+                behavior: 'smooth'
+              })}>
                   Pre-Order Tickets
                 </Button>
               </motion.div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-              >
+              <motion.div initial={{
+              opacity: 0,
+              scale: 0.9
+            }} animate={{
+              opacity: 1,
+              scale: 1
+            }} transition={{
+              duration: 0.5,
+              delay: 0.6
+            }}>
                 <Link to="/dashboard">
-                  <Button size="lg" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 px-8 py-6 text-lg">
-                    View Dashboard
-                  </Button>
+                  
                 </Link>
               </motion.div>
             </div>
@@ -86,13 +98,17 @@ export default function Landing() {
       {/* Lotteries Section */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.6
+        }} viewport={{
+          once: true
+        }} className="text-center mb-16">
             <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-4">
               Three Ways to Win
             </h2>
@@ -102,29 +118,9 @@ export default function Landing() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <LotteryCard
-              title="Weekly Lottery"
-              description="Limited entries, better odds"
-              ticketLimit={5000}
-              status="coming-soon"
-              nextDraw="Coming Soon"
-              index={0}
-            />
-            <LotteryCard
-              title="Monthly Lottery"
-              description="Unlimited tickets - Pre-order now with 2× bonus"
-              status="pre-order"
-              nextDraw="Coming Soon"
-              index={1}
-            />
-            <LotteryCard
-              title="Daily Lottery"
-              description="Quick draws, instant excitement"
-              ticketLimit={1000}
-              status="coming-soon"
-              nextDraw="Coming Soon"
-              index={2}
-            />
+            <LotteryCard title="Weekly Lottery" description="Limited entries, better odds" ticketLimit={5000} status="coming-soon" nextDraw="Coming Soon" index={0} />
+            <LotteryCard title="Monthly Lottery" description="Unlimited tickets - Pre-order now with 2× bonus" status="pre-order" nextDraw="Coming Soon" index={1} />
+            <LotteryCard title="Daily Lottery" description="Quick draws, instant excitement" ticketLimit={1000} status="coming-soon" nextDraw="Coming Soon" index={2} />
           </div>
         </div>
       </section>
@@ -134,13 +130,17 @@ export default function Landing() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
         
         <div className="container mx-auto px-4 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="max-w-4xl mx-auto"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.6
+        }} viewport={{
+          once: true
+        }} className="max-w-4xl mx-auto">
             <div className="bg-card border border-primary/30 rounded-3xl p-8 md:p-12">
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -157,26 +157,36 @@ export default function Landing() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  viewport={{ once: true }}
-                  className="p-6 rounded-xl bg-background border border-border hover:border-primary/30 transition-colors"
-                >
+                <motion.div initial={{
+                opacity: 0,
+                x: -20
+              }} whileInView={{
+                opacity: 1,
+                x: 0
+              }} transition={{
+                duration: 0.5,
+                delay: 0.1
+              }} viewport={{
+                once: true
+              }} className="p-6 rounded-xl bg-background border border-border hover:border-primary/30 transition-colors">
                   <Ticket className="w-8 h-8 mb-2 text-primary" />
                   <h3 className="font-bold mb-2">Double Tickets</h3>
                   <p className="text-sm text-muted-foreground">
                     Pre-order tickets for the Monthly lottery and receive 2× the amount
                   </p>
                 </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  viewport={{ once: true }}
-                  className="p-6 rounded-xl bg-background border border-border hover:border-primary/30 transition-colors"
-                >
+                <motion.div initial={{
+                opacity: 0,
+                x: 20
+              }} whileInView={{
+                opacity: 1,
+                x: 0
+              }} transition={{
+                duration: 0.5,
+                delay: 0.2
+              }} viewport={{
+                once: true
+              }} className="p-6 rounded-xl bg-background border border-border hover:border-primary/30 transition-colors">
                   <Zap className="w-8 h-8 mb-2 text-accent" />
                   <h3 className="font-bold mb-2">Instant Deposits</h3>
                   <p className="text-sm text-muted-foreground">
@@ -198,13 +208,17 @@ export default function Landing() {
       {/* How It Works */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.6
+        }} viewport={{
+          once: true
+        }} className="text-center mb-16">
             <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-4">
               Fully Automated
             </h2>
@@ -214,47 +228,44 @@ export default function Landing() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {[
-              {
-                icon: Zap,
-                title: 'Buy Tickets',
-                description: 'Connect wallet and purchase tickets pegged at $1 USD worth of SOL',
-                color: 'from-primary to-primary/50',
-              },
-              {
-                icon: Lock,
-                title: 'Pool Funds',
-                description: '70% to prize pool, 5% operational costs, 25% platform — all automatic',
-                color: 'from-accent to-accent/50',
-              },
-              {
-                icon: Sparkles,
-                title: 'Auto Draw',
-                description: 'Smart contracts execute draws on schedule using verifiable randomness',
-                color: 'from-primary to-accent',
-              },
-              {
-                icon: Gift,
-                title: 'Instant Payout',
-                description: 'Winners receive SOL directly to their wallet — no delays',
-                color: 'from-accent to-primary',
-              },
-            ].map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
+            {[{
+            icon: Zap,
+            title: 'Buy Tickets',
+            description: 'Connect wallet and purchase tickets pegged at $1 USD worth of SOL',
+            color: 'from-primary to-primary/50'
+          }, {
+            icon: Lock,
+            title: 'Pool Funds',
+            description: '70% to prize pool, 5% operational costs, 25% platform — all automatic',
+            color: 'from-accent to-accent/50'
+          }, {
+            icon: Sparkles,
+            title: 'Auto Draw',
+            description: 'Smart contracts execute draws on schedule using verifiable randomness',
+            color: 'from-primary to-accent'
+          }, {
+            icon: Gift,
+            title: 'Instant Payout',
+            description: 'Winners receive SOL directly to their wallet — no delays',
+            color: 'from-accent to-primary'
+          }].map((step, index) => <motion.div key={index} initial={{
+            opacity: 0,
+            y: 50
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.5,
+            delay: index * 0.1
+          }} viewport={{
+            once: true
+          }} className="text-center">
                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mx-auto mb-4`}>
                   <step.icon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="font-bold text-xl mb-2">{step.title}</h3>
                 <p className="text-sm text-muted-foreground">{step.description}</p>
-              </motion.div>
-            ))}
+              </motion.div>)}
           </div>
         </div>
       </section>
@@ -262,13 +273,17 @@ export default function Landing() {
       {/* Coming Soon */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="max-w-3xl mx-auto text-center"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.6
+        }} viewport={{
+          once: true
+        }} className="max-w-3xl mx-auto text-center">
             <div className="inline-block mb-6 px-4 py-2 rounded-full bg-accent/10 border border-accent/30 text-accent text-sm font-medium">
               Coming Soon
             </div>
@@ -279,35 +294,50 @@ export default function Landing() {
               Unlock exclusive sub-lotteries, cashback rewards, and private events. Leveling system and loyalty perks launching soon.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                viewport={{ once: true }}
-                className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
-              >
+              <motion.div initial={{
+              opacity: 0,
+              y: 30
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              duration: 0.5,
+              delay: 0.1
+            }} viewport={{
+              once: true
+            }} className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors">
                 <Lock className="w-10 h-10 mb-2 text-primary" />
                 <h3 className="font-bold mb-1">Private Lotteries</h3>
                 <p className="text-sm text-muted-foreground">Exclusive draws for VIP members</p>
               </motion.div>
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                viewport={{ once: true }}
-                className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
-              >
+              <motion.div initial={{
+              opacity: 0,
+              y: 30
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              duration: 0.5,
+              delay: 0.2
+            }} viewport={{
+              once: true
+            }} className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors">
                 <TrendingUp className="w-10 h-10 mb-2 text-accent" />
                 <h3 className="font-bold mb-1">Cashback Rewards</h3>
                 <p className="text-sm text-muted-foreground">Earn back a % of your tickets</p>
               </motion.div>
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                viewport={{ once: true }}
-                className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
-              >
+              <motion.div initial={{
+              opacity: 0,
+              y: 30
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              duration: 0.5,
+              delay: 0.3
+            }} viewport={{
+              once: true
+            }} className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors">
                 <Sparkles className="w-10 h-10 mb-2 text-primary" />
                 <h3 className="font-bold mb-1">Special Events</h3>
                 <p className="text-sm text-muted-foreground">Jackpot multipliers & bonuses</p>
@@ -321,6 +351,5 @@ export default function Landing() {
       <FAQ />
 
       <Footer />
-    </div>
-  );
+    </div>;
 }

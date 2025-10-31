@@ -36,12 +36,12 @@ export function LotteryCard({
             <h3 className="font-orbitron text-2xl font-bold text-primary mb-2">{title}</h3>
             <p className="text-sm text-muted-foreground">{description}</p>
           </div>
-          <div className={`px-3 py-1 rounded-full border text-xs font-medium ${
+          <div className={`px-2 py-0.5 rounded-full border text-[10px] font-medium ${
             status === 'pre-order' 
               ? 'bg-primary/10 border-primary/30 text-primary' 
               : 'bg-muted/10 border-muted/30 text-muted-foreground'
           }`}>
-            {status === 'pre-order' ? 'Pre-Order Available' : 'Coming Soon'}
+            {status === 'pre-order' ? 'Pre-Order' : 'Soon'}
           </div>
         </div>
 

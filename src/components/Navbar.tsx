@@ -1,0 +1,57 @@
+import { Link, useLocation } from 'react-router-dom';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { motion } from 'framer-motion';
+
+export function Navbar() {
+  const location = useLocation();
+  
+  const isActive = (path: string) => location.pathname === path;
+  
+  return (
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 backdrop-blur-xl bg-background/80"
+    >
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="text-2xl font-orbitron font-black text-primary text-glow-purple">
+            SOLLUCKY
+          </div>
+        </Link>
+        
+        <div className="hidden md:flex items-center gap-8">
+          <Link
+            to="/"
+            className={`text-sm font-medium transition-colors ${
+              isActive('/') ? 'text-primary' : 'text-foreground hover:text-primary'
+            }`}
+          >
+            Home
+          </Link>
+          <Link
+            to="/dashboard"
+            className={`text-sm font-medium transition-colors ${
+              isActive('/dashboard') ? 'text-primary' : 'text-foreground hover:text-primary'
+            }`}
+          >
+            Dashboard
+          </Link>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !rounded-lg !h-10" />
+          <Link to="/login">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-6 py-2 rounded-lg bg-card border border-primary/50 text-primary font-medium hover:bg-primary/10 transition-colors"
+            >
+              Login
+            </motion.button>
+          </Link>
+        </div>
+      </div>
+    </motion.nav>
+  );
+}

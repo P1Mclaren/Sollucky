@@ -230,13 +230,13 @@ export default function Profile() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Card className="bg-card border-accent/30 p-6 hover:border-accent/50 transition-all">
+              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-                    <Ticket className="w-6 h-6 text-accent" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Ticket className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="px-3 py-1 rounded-full bg-accent/10 border border-accent/30">
-                    <span className="text-xs font-medium text-accent">2× Bonus</span>
+                  <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/30">
+                    <span className="text-xs font-medium text-primary">2× Bonus</span>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mb-1">Pre-Orders</p>
@@ -384,7 +384,7 @@ export default function Profile() {
                         </div>
                         <div className="text-right">
                           <p className="font-bold font-mono">{tx.amount}</p>
-                          <p className="text-xs text-accent">{tx.status}</p>
+                          <p className="text-xs text-primary">{tx.status}</p>
                         </div>
                       </motion.div>
                     ))
@@ -406,14 +406,14 @@ export default function Profile() {
             {/* Sidebar - Takes 1 column */}
             <div className="space-y-8">
               {/* Status Card */}
-              <Card className="bg-card border-accent/30 p-6">
+              <Card className="bg-card border-primary/30 p-6">
                 <div className="text-center mb-6">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/30 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                    <span className="text-sm font-medium text-accent">Pre-Launch Member</span>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-4">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-sm font-medium text-primary">Pre-Launch Member</span>
                   </div>
                   <h3 className="font-orbitron text-lg font-bold mb-2">Platform Status</h3>
-                  <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                  <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">
                     COMING SOON
                   </p>
                 </div>
@@ -424,7 +424,7 @@ export default function Profile() {
                   </div>
                   <div className="flex items-center justify-between py-2 border-t border-border/50">
                     <span className="text-muted-foreground">Bonus Multiplier</span>
-                    <span className="font-bold text-accent">2×</span>
+                    <span className="font-bold text-primary">2×</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-t border-border/50">
                     <span className="text-muted-foreground">Next Lottery</span>
@@ -443,19 +443,19 @@ export default function Profile() {
                 </h3>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <span>2× bonus tickets on Monthly lottery</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <span>Early access to platform features</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <span>Automatic smart contract execution</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                     <span>Transparent on-chain verification</span>
                   </li>
                 </ul>

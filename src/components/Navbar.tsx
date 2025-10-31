@@ -1,9 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { motion } from 'framer-motion';
 
 export function Navbar() {
   const location = useLocation();
+  const { connected } = useWallet();
   
   const isActive = (path: string) => location.pathname === path;
   
@@ -29,14 +31,16 @@ export function Navbar() {
           >
             Home
           </Link>
-          <Link
-            to="/profile"
-            className={`text-sm font-medium transition-colors ${
-              isActive('/profile') ? 'text-primary' : 'text-foreground hover:text-primary'
-            }`}
-          >
-            Profile
-          </Link>
+          {connected && (
+            <Link
+              to="/profile"
+              className={`text-sm font-medium transition-colors ${
+                isActive('/profile') ? 'text-primary' : 'text-foreground hover:text-primary'
+              }`}
+            >
+              Profile
+            </Link>
+          )}
         </div>
         
         <div className="flex items-center gap-4">

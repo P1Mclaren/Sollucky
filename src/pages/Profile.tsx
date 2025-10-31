@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, Transaction, SystemProgram, PublicKey } from '@solana/web3.js';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -12,8 +12,11 @@ import { ParticleBackground } from '@/components/ParticleBackground';
 import { Wallet, TrendingUp, Ticket, Gift, User, Copy, CheckCircle2, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 
+const LOTTERY_WALLET = 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM';
+const OPERATOR_WALLET = 'HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5';
+
 export default function Profile() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
@@ -78,8 +81,8 @@ export default function Profile() {
     fetchBalance();
   };
 
-  const handlePreOrder = () => {
-    if (!connected || !publicKey) {
+  const handlePreOrder = async () => {
+    if (!connected || !publicKey || !sendTransaction) {
       toast.error('Please connect your wallet first');
       return;
     }
@@ -99,28 +102,105 @@ export default function Profile() {
       return;
     }
 
-    const walletAddress = publicKey.toString();
-    const newTransaction = {
-      date: new Date().toISOString().split('T')[0],
-      type: 'Pre-Order',
-      amount: `-${amount} SOL`,
-      status: 'Confirmed'
-    };
-    
-    const updatedTxs = [newTransaction, ...transactions];
-    
-    // Store data linked to wallet address
-    localStorage.setItem(`sollucky_tickets_${walletAddress}`, newTotal.toString());
-    localStorage.setItem(`sollucky_txs_${walletAddress}`, JSON.stringify(updatedTxs));
-    
-    setPreOrderTickets(newTotal);
-    setTransactions(updatedTxs);
-    
-    toast.success(`Pre-ordered ${ticketsFromAmount} tickets (2× bonus)`, {
-      description: `Total pre-orders: ${newTotal}/250`,
-    });
-    
-    setDepositAmount('');
+    try {
+      // Convert SOL to lamports
+      const lamports = Math.floor(amount * LAMPORTS_PER_SOL);
+      
+      // Estimate transaction fee (5000 lamports per signature, 2 instructions = 10000 lamports)
+      const estimatedFee = 10000;
+      const totalRequired = lamports + estimatedFee;
+      
+      // Check if user has enough balance
+      const currentBalance = await connection.getBalance(publicKey);
+      if (currentBalance < totalRequired) {
+        toast.error('Insufficient balance', {
+          description: `You need ${(totalRequired / LAMPORTS_PER_SOL).toFixed(4)} SOL (including fees)`,
+        });
+        return;
+      }
+
+      // Calculate splits
+      const lotteryAmount = Math.floor(lamports * 0.7); // 70%
+      const operatorAmount = Math.floor(lamports * 0.3); // 30%
+
+      toast.info('Processing transaction...', {
+        description: 'Please confirm in your wallet',
+      });
+
+      // Create transaction with both transfers
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey(LOTTERY_WALLET),
+          lamports: lotteryAmount,
+        }),
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey(OPERATOR_WALLET),
+          lamports: operatorAmount,
+        })
+      );
+
+      // Get latest blockhash
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = publicKey;
+
+      // Send and confirm transaction
+      const signature = await sendTransaction(transaction, connection);
+      
+      toast.info('Confirming transaction...', {
+        description: 'This may take a few seconds',
+      });
+
+      // Wait for confirmation
+      await connection.confirmTransaction({
+        signature,
+        blockhash,
+        lastValidBlockHeight,
+      });
+
+      // Success - update local state
+      const walletAddress = publicKey.toString();
+      const newTransaction = {
+        date: new Date().toISOString().split('T')[0],
+        type: 'Pre-Order',
+        amount: `-${amount} SOL`,
+        status: 'Confirmed'
+      };
+      
+      const updatedTxs = [newTransaction, ...transactions];
+      
+      localStorage.setItem(`sollucky_tickets_${walletAddress}`, newTotal.toString());
+      localStorage.setItem(`sollucky_txs_${walletAddress}`, JSON.stringify(updatedTxs));
+      
+      setPreOrderTickets(newTotal);
+      setTransactions(updatedTxs);
+      
+      toast.success(`Pre-ordered ${ticketsFromAmount} tickets (2× bonus)`, {
+        description: `Transaction confirmed! View on Solscan`,
+        action: {
+          label: 'View',
+          onClick: () => window.open(`https://solscan.io/tx/${signature}?cluster=devnet`, '_blank'),
+        },
+      });
+      
+      setDepositAmount('');
+      fetchBalance(); // Refresh balance
+      
+    } catch (error: any) {
+      console.error('Transaction error:', error);
+      
+      if (error.message?.includes('User rejected')) {
+        toast.error('Transaction cancelled', {
+          description: 'You rejected the transaction',
+        });
+      } else {
+        toast.error('Transaction failed', {
+          description: error.message || 'Please try again',
+        });
+      }
+    }
   };
 
   const copyAddress = () => {

@@ -161,27 +161,34 @@ All colors MUST be HSL.
     }
   }
   
-  /* Wallet Adapter Button Customization */
-  .wallet-adapter-button {
+  /* Wallet Adapter Complete Override */
+  button.wallet-adapter-button-trigger,
+  button.wallet-adapter-button {
     background: linear-gradient(135deg, hsl(266 89% 61%) 0%, hsl(266 70% 50%) 100%) !important;
+    background-color: hsl(266 89% 61%) !important;
     border-radius: 0.75rem !important;
     height: 3rem !important;
+    min-height: 3rem !important;
     padding: 0 1.5rem !important;
     font-weight: 600 !important;
     font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     box-shadow: 0 0 20px hsl(266 89% 61% / 0.3), 0 0 40px hsl(266 89% 61% / 0.2) !important;
     border: 1px solid hsl(266 89% 61% / 0.3) !important;
     color: white !important;
   }
   
-  .wallet-adapter-button:not([disabled]):hover {
+  button.wallet-adapter-button-trigger:not([disabled]):hover,
+  button.wallet-adapter-button:not([disabled]):hover {
     background: linear-gradient(135deg, hsl(266 89% 65%) 0%, hsl(266 70% 55%) 100%) !important;
+    background-color: hsl(266 89% 65%) !important;
     box-shadow: 0 0 30px hsl(266 89% 61% / 0.5), 0 0 50px hsl(280 85% 70% / 0.4) !important;
     border-color: hsl(266 89% 61% / 0.5) !important;
     transform: translateY(-1px) !important;
   }
   
+  .wallet-adapter-button-trigger[disabled],
   .wallet-adapter-button[disabled] {
     opacity: 0.6 !important;
   }

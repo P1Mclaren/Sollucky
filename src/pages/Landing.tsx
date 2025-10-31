@@ -39,13 +39,18 @@ export default function Landing() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="inline-block mb-12 p-8 rounded-2xl bg-card border border-accent/30 shadow-glow"
+              className="inline-block mb-12"
             >
-              <div className="text-sm text-muted-foreground mb-2">Platform Status</div>
-              <div className="font-orbitron text-4xl md:text-6xl font-bold text-accent text-glow-accent animate-pulse-glow">
-                COMING SOON
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/40 via-accent/40 to-primary/40 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity animate-pulse-glow" />
+                <div className="relative bg-card/80 backdrop-blur-sm border border-primary/50 rounded-3xl p-8 md:p-10">
+                  <div className="text-xs font-medium text-primary mb-3 tracking-wider uppercase">Platform Status</div>
+                  <div className="font-orbitron text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary mb-3">
+                    COMING SOON
+                  </div>
+                  <div className="text-sm text-muted-foreground">Connect wallet to pre-order Monthly tickets</div>
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground mt-2">Connect wallet to pre-order Monthly lottery tickets</div>
             </motion.div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

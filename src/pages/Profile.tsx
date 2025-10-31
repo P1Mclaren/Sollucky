@@ -331,10 +331,10 @@ export default function Profile() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <Card className="bg-card border-border/50 p-6 hover:border-border transition-all">
+              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-foreground" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-primary" />
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mb-1">Transactions</p>

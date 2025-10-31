@@ -31,18 +31,9 @@ export function LotteryCard({
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
       
       <div className="relative bg-card border border-primary/30 rounded-2xl p-6 hover:border-primary/50 transition-all duration-300">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="font-orbitron text-2xl font-bold text-primary mb-2">{title}</h3>
-            <p className="text-sm text-muted-foreground">{description}</p>
-          </div>
-          <div className={`px-2 py-0.5 rounded-full border text-[10px] font-medium ${
-            status === 'pre-order' 
-              ? 'bg-primary/10 border-primary/30 text-primary' 
-              : 'bg-muted/10 border-muted/30 text-muted-foreground'
-          }`}>
-            {status === 'pre-order' ? 'Pre-Order' : 'Soon'}
-          </div>
+        <div className="mb-4">
+          <h3 className="font-orbitron text-2xl font-bold text-primary mb-2">{title}</h3>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
 
         <div className="space-y-4 mb-6">

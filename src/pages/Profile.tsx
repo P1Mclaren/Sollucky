@@ -150,13 +150,11 @@ export default function Profile() {
         >
           {/* Profile Header */}
           <div className="relative mb-12">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-3xl blur-2xl" />
-            <Card className="relative bg-card/80 backdrop-blur-sm border-primary/30 p-8 md:p-10 shadow-glow">
+            <Card className="relative bg-card/80 backdrop-blur-sm border-primary/30 p-8 md:p-10">
               <div className="flex flex-col md:flex-row items-center gap-8">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-2xl blur-xl opacity-50 animate-pulse-glow" />
-                  <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-neon">
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                     <User className="w-12 h-12 md:w-16 md:h-16 text-white" />
                   </div>
                 </div>
@@ -211,7 +209,7 @@ export default function Profile() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all hover:shadow-neon">
+              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
                     <Wallet className="w-6 h-6 text-primary" />
@@ -232,7 +230,7 @@ export default function Profile() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Card className="bg-card border-accent/30 p-6 hover:border-accent/50 transition-all hover:shadow-glow">
+              <Card className="bg-card border-accent/30 p-6 hover:border-accent/50 transition-all">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
                     <Ticket className="w-6 h-6 text-accent" />
@@ -289,7 +287,7 @@ export default function Profile() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Pre-Order Section - Takes 2 columns */}
             <div className="lg:col-span-2 space-y-8">
-              <Card className="bg-card border-primary/30 p-8 shadow-neon">
+              <Card className="bg-card border-primary/30 p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
                     <Gift className="w-5 h-5 text-primary" />
@@ -348,7 +346,7 @@ export default function Profile() {
                     <Button
                       onClick={handlePreOrder}
                       size="lg"
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-neon h-12"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12"
                     >
                       Pre-Order Now
                     </Button>

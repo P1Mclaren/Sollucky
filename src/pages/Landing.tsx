@@ -26,7 +26,7 @@ export default function Landing() {
               Powered by Solana Blockchain
             </div>
             
-            <h1 className="font-orbitron text-5xl md:text-7xl lg:text-8xl font-black mb-6 text-glow-purple">
+            <h1 className="font-orbitron text-5xl md:text-7xl lg:text-8xl font-black mb-6">
               BECOME SO LUCKY
             </h1>
             
@@ -42,7 +42,7 @@ export default function Landing() {
               className="inline-block mb-12"
             >
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/40 via-accent/40 to-primary/40 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity animate-pulse-glow" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-3xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
                 <div className="relative bg-card/80 backdrop-blur-sm border border-primary/50 rounded-3xl p-8 md:p-10">
                   <div className="text-xs font-medium text-primary mb-3 tracking-wider uppercase">Platform Status</div>
                   <div className="font-orbitron text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary mb-3">
@@ -54,18 +54,30 @@ export default function Landing() {
             </motion.div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button 
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-6 text-lg shadow-neon"
-                onClick={() => document.getElementById('pre-order')?.scrollIntoView({ behavior: 'smooth' })}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
               >
-                Pre-Order Tickets
-              </Button>
-              <Link to="/dashboard">
-                <Button size="lg" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 px-8 py-6 text-lg">
-                  View Dashboard
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-6 text-lg"
+                  onClick={() => document.getElementById('pre-order')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Pre-Order Tickets
                 </Button>
-              </Link>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+              >
+                <Link to="/dashboard">
+                  <Button size="lg" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 px-8 py-6 text-lg">
+                    View Dashboard
+                  </Button>
+                </Link>
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -81,7 +93,7 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-4 text-glow-purple">
+            <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-4">
               Three Ways to Win
             </h2>
             <p className="text-muted-foreground text-lg">
@@ -129,7 +141,7 @@ export default function Landing() {
             viewport={{ once: true }}
             className="max-w-4xl mx-auto"
           >
-            <div className="bg-card border border-primary/30 rounded-3xl p-8 md:p-12 shadow-neon">
+            <div className="bg-card border border-primary/30 rounded-3xl p-8 md:p-12">
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
                   <Gift className="w-6 h-6 text-primary" />
@@ -145,24 +157,36 @@ export default function Landing() {
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="p-6 rounded-xl bg-background border border-border">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  viewport={{ once: true }}
+                  className="p-6 rounded-xl bg-background border border-border hover:border-primary/30 transition-colors"
+                >
                   <Ticket className="w-8 h-8 mb-2 text-primary" />
                   <h3 className="font-bold mb-2">Double Tickets</h3>
                   <p className="text-sm text-muted-foreground">
                     Pre-order tickets for the Monthly lottery and receive 2× the amount
                   </p>
-                </div>
-                <div className="p-6 rounded-xl bg-background border border-border">
+                </motion.div>
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  viewport={{ once: true }}
+                  className="p-6 rounded-xl bg-background border border-border hover:border-primary/30 transition-colors"
+                >
                   <Zap className="w-8 h-8 mb-2 text-accent" />
                   <h3 className="font-bold mb-2">Instant Deposits</h3>
                   <p className="text-sm text-muted-foreground">
                     Connect your wallet and deposit SOL in seconds via Phantom or Solflare
                   </p>
-                </div>
+                </motion.div>
               </div>
 
               <Link to="/dashboard">
-                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-neon">
+                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                   Pre-Order Now
                 </Button>
               </Link>
@@ -181,7 +205,7 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-4 text-glow-purple">
+            <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-4">
               Fully Automated
             </h2>
             <p className="text-muted-foreground text-lg">
@@ -224,7 +248,7 @@ export default function Landing() {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mx-auto mb-4 shadow-neon`}>
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mx-auto mb-4`}>
                   <step.icon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="font-bold text-xl mb-2">{step.title}</h3>
@@ -255,21 +279,39 @@ export default function Landing() {
               Unlock exclusive sub-lotteries, cashback rewards, and private events. Leveling system and loyalty perks launching soon.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-6 rounded-xl bg-card border border-border">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                viewport={{ once: true }}
+                className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+              >
                 <Lock className="w-10 h-10 mb-2 text-primary" />
                 <h3 className="font-bold mb-1">Private Lotteries</h3>
                 <p className="text-sm text-muted-foreground">Exclusive draws for VIP members</p>
-              </div>
-              <div className="p-6 rounded-xl bg-card border border-border">
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+              >
                 <TrendingUp className="w-10 h-10 mb-2 text-accent" />
                 <h3 className="font-bold mb-1">Cashback Rewards</h3>
                 <p className="text-sm text-muted-foreground">Earn back a % of your tickets</p>
-              </div>
-              <div className="p-6 rounded-xl bg-card border border-border">
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                viewport={{ once: true }}
+                className="p-6 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+              >
                 <Sparkles className="w-10 h-10 mb-2 text-primary" />
                 <h3 className="font-bold mb-1">Special Events</h3>
                 <p className="text-sm text-muted-foreground">Jackpot multipliers & bonuses</p>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </div>

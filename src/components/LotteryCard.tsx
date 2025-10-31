@@ -31,7 +31,7 @@ export function LotteryCard({
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
       
       <div className="relative bg-card border border-primary/30 rounded-2xl p-6 hover:border-primary/50 transition-all duration-300">
-        <div className="mb-4">
+        <div className="mb-4 text-center">
           <h3 className="font-orbitron text-2xl font-bold text-primary mb-2">{title}</h3>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>

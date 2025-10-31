@@ -162,31 +162,86 @@ All colors MUST be HSL.
   }
   
   /* Wallet Adapter Button Customization */
+  .wallet-adapter-button {
+    background: linear-gradient(135deg, hsl(266 89% 61%) 0%, hsl(266 70% 50%) 100%) !important;
+    border-radius: 0.75rem !important;
+    height: 3rem !important;
+    padding: 0 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 0 20px hsl(266 89% 61% / 0.3), 0 0 40px hsl(266 89% 61% / 0.2) !important;
+    border: 1px solid hsl(266 89% 61% / 0.3) !important;
+    color: white !important;
+  }
+  
+  .wallet-adapter-button:not([disabled]):hover {
+    background: linear-gradient(135deg, hsl(266 89% 65%) 0%, hsl(266 70% 55%) 100%) !important;
+    box-shadow: 0 0 30px hsl(266 89% 61% / 0.5), 0 0 50px hsl(280 85% 70% / 0.4) !important;
+    border-color: hsl(266 89% 61% / 0.5) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  .wallet-adapter-button[disabled] {
+    opacity: 0.6 !important;
+  }
+  
   .wallet-adapter-dropdown {
-    @apply !bg-background/95 !border !border-primary/20 !rounded-xl !shadow-2xl !backdrop-blur-xl !mt-2;
+    background: hsl(0 0% 4% / 0.95) !important;
+    border: 1px solid hsl(266 89% 61% / 0.2) !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px hsl(266 89% 61% / 0.2) !important;
+    backdrop-filter: blur(16px) !important;
+    margin-top: 0.5rem !important;
   }
 
   .wallet-adapter-dropdown-list {
-    @apply !bg-transparent !p-2;
+    background: transparent !important;
+    padding: 0.5rem !important;
   }
 
   .wallet-adapter-dropdown-list-item {
-    @apply !bg-card hover:!bg-primary/10 !text-foreground !rounded-lg !transition-all !duration-200 !px-4 !py-3 !border !border-transparent hover:!border-primary/30 hover:!shadow-neon;
+    background: hsl(0 0% 6%) !important;
+    color: hsl(0 0% 98%) !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.2s ease !important;
+    padding: 0.75rem 1rem !important;
+    border: 1px solid transparent !important;
+  }
+  
+  .wallet-adapter-dropdown-list-item:not([disabled]):hover {
+    background: hsl(266 89% 61% / 0.1) !important;
+    border-color: hsl(266 89% 61% / 0.3) !important;
+    box-shadow: 0 0 20px hsl(266 89% 61% / 0.2) !important;
   }
 
   .wallet-adapter-modal-wrapper {
-    @apply !bg-background/95 !backdrop-blur-xl !border !border-primary/20 !rounded-2xl !shadow-2xl;
+    background: hsl(0 0% 4% / 0.95) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid hsl(266 89% 61% / 0.2) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
   }
 
   .wallet-adapter-modal-title {
-    @apply !text-foreground !font-orbitron;
+    color: hsl(0 0% 98%) !important;
+    font-family: 'Orbitron', sans-serif !important;
   }
 
   .wallet-adapter-modal-list {
-    @apply !bg-transparent;
+    background: transparent !important;
   }
 
   .wallet-adapter-modal-list-item {
-    @apply !bg-card hover:!bg-primary/10 !text-foreground !rounded-lg !transition-all !duration-200 !border !border-transparent hover:!border-primary/30;
+    background: hsl(0 0% 6%) !important;
+    color: hsl(0 0% 98%) !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid transparent !important;
+  }
+  
+  .wallet-adapter-modal-list-item:not([disabled]):hover {
+    background: hsl(266 89% 61% / 0.1) !important;
+    border-color: hsl(266 89% 61% / 0.3) !important;
   }
 }

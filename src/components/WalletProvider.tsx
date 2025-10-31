@@ -7,6 +7,8 @@ import { useMemo } from 'react';
 
 // Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
+// Import custom wallet styles AFTER default styles to override them
+import '../styles/wallet-custom.css';
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const network = WalletAdapterNetwork.Devnet;

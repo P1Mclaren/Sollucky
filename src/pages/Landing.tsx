@@ -31,33 +31,34 @@ export default function Landing() {
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              The first fully automated, decentralized lottery platform on Solana. Fair, transparent, unstoppable.
+              The first fully automated, decentralized lottery platform on Solana. Join the waitlist and pre-order tickets.
             </p>
 
-            {/* Live Jackpot Display */}
+            {/* Platform Status */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="inline-block mb-12 p-8 rounded-2xl bg-card border border-primary/30 shadow-neon"
+              className="inline-block mb-12 p-8 rounded-2xl bg-card border border-accent/30 shadow-neon"
             >
-              <div className="text-sm text-muted-foreground mb-2">Total Prize Pool</div>
-              <div className="font-orbitron text-4xl md:text-6xl font-bold text-primary text-glow-purple animate-pulse-glow">
-                47,892 SOL
+              <div className="text-sm text-muted-foreground mb-2">Platform Status</div>
+              <div className="font-orbitron text-4xl md:text-6xl font-bold text-accent text-glow-cyan animate-pulse-glow">
+                COMING SOON
               </div>
-              <div className="text-sm text-accent mt-2">≈ $8.2M USD</div>
+              <div className="text-sm text-muted-foreground mt-2">Connect wallet to pre-order Monthly lottery tickets</div>
             </motion.div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/login">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-6 text-lg shadow-neon group">
-                  Join Now
-                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 py-6 text-lg shadow-neon"
+                onClick={() => document.getElementById('pre-order')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Pre-Order Tickets
+              </Button>
               <Link to="/dashboard">
                 <Button size="lg" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 px-8 py-6 text-lg">
-                  Pre-Order Tickets
+                  View Dashboard
                 </Button>
               </Link>
             </div>
@@ -85,29 +86,26 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <LotteryCard
-              title="Monthly"
-              description="Unlimited tickets"
-              prizePool="32,450 SOL"
-              nextDraw="12 days"
-              participants={8942}
+              title="Monthly Lottery"
+              description="Unlimited tickets - Pre-order now with 2× bonus"
+              status="pre-order"
+              nextDraw="Coming Soon"
               index={0}
             />
             <LotteryCard
-              title="Weekly"
-              description="Limited entries"
+              title="Weekly Lottery"
+              description="Limited entries, better odds"
               ticketLimit={5000}
-              prizePool="12,180 SOL"
-              nextDraw="4 days"
-              participants={3214}
+              status="coming-soon"
+              nextDraw="Coming Soon"
               index={1}
             />
             <LotteryCard
-              title="Daily"
-              description="Fast draws"
+              title="Daily Lottery"
+              description="Quick draws, instant excitement"
               ticketLimit={1000}
-              prizePool="3,262 SOL"
-              nextDraw="18 hours"
-              participants={784}
+              status="coming-soon"
+              nextDraw="Coming Soon"
               index={2}
             />
           </div>
@@ -115,7 +113,7 @@ export default function Landing() {
       </section>
 
       {/* Pre-Order Section */}
-      <section className="py-24 relative">
+      <section id="pre-order" className="py-24 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
         
         <div className="container mx-auto px-4 relative">
@@ -133,10 +131,10 @@ export default function Landing() {
                 </div>
                 <div>
                   <h2 className="font-orbitron text-3xl md:text-4xl font-bold mb-4">
-                    Pre-Order & Get 2× Tickets
+                    Pre-Order Monthly Lottery Tickets
                   </h2>
                   <p className="text-muted-foreground text-lg mb-6">
-                    Deposit SOL now and pre-order Monthly lottery tickets. Get double tickets for early commitment (max 250).
+                    Connect your wallet and pre-order tickets for the upcoming Monthly lottery. Get <span className="text-primary font-bold">2× bonus tickets</span> when you pre-order now (max 250 total).
                   </p>
                 </div>
               </div>

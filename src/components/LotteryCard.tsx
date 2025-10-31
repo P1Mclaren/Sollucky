@@ -6,9 +6,8 @@ interface LotteryCardProps {
   title: string;
   description: string;
   ticketLimit?: number;
-  prizePool: string;
+  status: 'pre-order' | 'coming-soon';
   nextDraw: string;
-  participants: number;
   index: number;
 }
 
@@ -16,9 +15,8 @@ export function LotteryCard({
   title,
   description,
   ticketLimit,
-  prizePool,
+  status,
   nextDraw,
-  participants,
   index,
 }: LotteryCardProps) {
   return (
@@ -38,50 +36,50 @@ export function LotteryCard({
             <h3 className="font-orbitron text-2xl font-bold text-primary mb-2">{title}</h3>
             <p className="text-sm text-muted-foreground">{description}</p>
           </div>
-          {ticketLimit && (
-            <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-xs text-primary font-medium">
-              Limited
-            </div>
-          )}
+          <div className={`px-3 py-1 rounded-full border text-xs font-medium ${
+            status === 'pre-order' 
+              ? 'bg-primary/10 border-primary/30 text-primary' 
+              : 'bg-muted/10 border-muted/30 text-muted-foreground'
+          }`}>
+            {status === 'pre-order' ? 'Pre-Order Available' : 'Coming Soon'}
+          </div>
         </div>
 
         <div className="space-y-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <TrendingUp className="w-4 h-4" />
-              <span className="text-sm">Prize Pool</span>
-            </div>
-            <span className="text-2xl font-bold text-primary text-glow-purple">{prizePool}</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span className="text-sm">Next Draw</span>
+              <span className="text-sm">Launch</span>
             </div>
-            <span className="font-medium">{nextDraw}</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Ticket className="w-4 h-4" />
-              <span className="text-sm">Participants</span>
-            </div>
-            <span className="font-medium">{participants.toLocaleString()}</span>
+            <span className="font-medium text-accent">{nextDraw}</span>
           </div>
 
           {ticketLimit && (
-            <div className="pt-2 border-t border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Ticket className="w-4 h-4" />
+                <span className="text-sm">Ticket Limit</span>
+              </div>
+              <span className="font-medium">{ticketLimit} max</span>
+            </div>
+          )}
+
+          {status === 'pre-order' && (
+            <div className="pt-2 border-t border-primary/30">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Ticket Limit</span>
-                <span className="font-medium text-accent">{ticketLimit} max</span>
+                <span className="text-muted-foreground">Pre-Order Bonus</span>
+                <span className="font-bold text-primary">2× Tickets</span>
               </div>
             </div>
           )}
         </div>
 
-        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-neon">
-          Pre-Order Tickets
+        <Button 
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-neon"
+          disabled={status === 'coming-soon'}
+          onClick={() => document.getElementById('pre-order')?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          {status === 'pre-order' ? 'Pre-Order Now' : 'Coming Soon'}
         </Button>
       </div>
     </motion.div>

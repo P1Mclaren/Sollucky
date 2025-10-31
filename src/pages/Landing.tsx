@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Zap, Lock, Sparkles, Gift } from 'lucide-react';
+import { ArrowRight, Zap, Lock, Sparkles, Gift, Ticket, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ParticleBackground } from '@/components/ParticleBackground';
@@ -39,10 +39,10 @@ export default function Landing() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="inline-block mb-12 p-8 rounded-2xl bg-card border border-accent/30 shadow-neon"
+              className="inline-block mb-12 p-8 rounded-2xl bg-card border border-accent/30 shadow-glow"
             >
               <div className="text-sm text-muted-foreground mb-2">Platform Status</div>
-              <div className="font-orbitron text-4xl md:text-6xl font-bold text-accent text-glow-cyan animate-pulse-glow">
+              <div className="font-orbitron text-4xl md:text-6xl font-bold text-accent text-glow-accent animate-pulse-glow">
                 COMING SOON
               </div>
               <div className="text-sm text-muted-foreground mt-2">Connect wallet to pre-order Monthly lottery tickets</div>
@@ -141,14 +141,14 @@ export default function Landing() {
 
               <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div className="p-6 rounded-xl bg-background border border-border">
-                  <div className="text-4xl mb-2">🎫</div>
+                  <Ticket className="w-8 h-8 mb-2 text-primary" />
                   <h3 className="font-bold mb-2">Double Tickets</h3>
                   <p className="text-sm text-muted-foreground">
                     Pre-order tickets for the Monthly lottery and receive 2× the amount
                   </p>
                 </div>
                 <div className="p-6 rounded-xl bg-background border border-border">
-                  <div className="text-4xl mb-2">⚡</div>
+                  <Zap className="w-8 h-8 mb-2 text-accent" />
                   <h3 className="font-bold mb-2">Instant Deposits</h3>
                   <p className="text-sm text-muted-foreground">
                     Connect your wallet and deposit SOL in seconds via Phantom or Solflare
@@ -251,17 +251,17 @@ export default function Landing() {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-6 rounded-xl bg-card border border-border">
-                <div className="text-3xl mb-2">🏆</div>
+                <Lock className="w-10 h-10 mb-2 text-primary" />
                 <h3 className="font-bold mb-1">Private Lotteries</h3>
                 <p className="text-sm text-muted-foreground">Exclusive draws for VIP members</p>
               </div>
               <div className="p-6 rounded-xl bg-card border border-border">
-                <div className="text-3xl mb-2">💰</div>
+                <TrendingUp className="w-10 h-10 mb-2 text-accent" />
                 <h3 className="font-bold mb-1">Cashback Rewards</h3>
                 <p className="text-sm text-muted-foreground">Earn back a % of your tickets</p>
               </div>
               <div className="p-6 rounded-xl bg-card border border-border">
-                <div className="text-3xl mb-2">⭐</div>
+                <Sparkles className="w-10 h-10 mb-2 text-primary" />
                 <h3 className="font-bold mb-1">Special Events</h3>
                 <p className="text-sm text-muted-foreground">Jackpot multipliers & bonuses</p>
               </div>

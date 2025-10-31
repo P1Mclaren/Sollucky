@@ -53,7 +53,7 @@ export default {
         },
         neon: {
           purple: "hsl(var(--neon-purple))",
-          cyan: "hsl(var(--neon-cyan))",
+          accent: "hsl(var(--neon-accent))",
         },
       },
       borderRadius: {

@@ -29,8 +29,8 @@ All colors MUST be HSL.
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 60%;
 
-    /* Cyan accent */
-    --accent: 200 90% 60%;
+    /* Lighter purple accent */
+    --accent: 280 85% 70%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -44,19 +44,20 @@ All colors MUST be HSL.
 
     /* Custom Sollucky colors */
     --neon-purple: 266 89% 61%;
-    --neon-cyan: 200 90% 60%;
+    --neon-accent: 280 85% 70%;
     --deep-black: 0 0% 4%;
     --dark-gray: 0 0% 12%;
     
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(266 89% 61%) 0%, hsl(266 70% 40%) 100%);
-    --gradient-cyber: linear-gradient(135deg, hsl(266 89% 61%) 0%, hsl(200 90% 60%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(266 89% 61%) 0%, hsl(280 85% 70%) 100%);
     --gradient-dark: linear-gradient(180deg, hsl(0 0% 4%) 0%, hsl(266 50% 10%) 100%);
     
     /* Glows and shadows */
     --glow-purple: 0 0 40px hsl(266 89% 61% / 0.5);
-    --glow-cyan: 0 0 40px hsl(200 90% 60% / 0.5);
+    --glow-accent: 0 0 40px hsl(280 85% 70% / 0.5);
     --shadow-neon: 0 0 20px hsl(266 89% 61% / 0.3), 0 0 40px hsl(266 89% 61% / 0.2);
+    --shadow-glow: 0 0 30px hsl(266 89% 61% / 0.4), 0 0 50px hsl(280 85% 70% / 0.3);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -85,20 +86,24 @@ All colors MUST be HSL.
     box-shadow: var(--glow-purple);
   }
   
-  .glow-cyan {
-    box-shadow: var(--glow-cyan);
+  .glow-accent {
+    box-shadow: var(--glow-accent);
   }
   
   .shadow-neon {
     box-shadow: var(--shadow-neon);
   }
   
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
   .text-glow-purple {
     text-shadow: 0 0 20px hsl(266 89% 61% / 0.6);
   }
   
-  .text-glow-cyan {
-    text-shadow: 0 0 20px hsl(200 90% 60% / 0.6);
+  .text-glow-accent {
+    text-shadow: 0 0 20px hsl(280 85% 70% / 0.6);
   }
   
   /* Gradients */
@@ -106,8 +111,8 @@ All colors MUST be HSL.
     background: var(--gradient-primary);
   }
   
-  .gradient-cyber {
-    background: var(--gradient-cyber);
+  .gradient-accent {
+    background: var(--gradient-accent);
   }
   
   .gradient-dark {

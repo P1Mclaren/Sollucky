@@ -44,7 +44,19 @@ export function Navbar() {
         </div>
         
         <div className="flex items-center gap-4">
-          <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !rounded-lg !h-10 !transition-all !duration-300 !shadow-neon hover:!shadow-glow" />
+          {connected && (
+            <Link
+              to="/profile"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                isActive('/profile') 
+                  ? 'bg-primary/20 text-primary border border-primary/50' 
+                  : 'text-foreground hover:text-primary hover:bg-primary/10 border border-transparent'
+              }`}
+            >
+              Profile
+            </Link>
+          )}
+          <WalletMultiButton className="!bg-gradient-to-r !from-primary !to-primary/80 hover:!from-primary/90 hover:!to-primary/70 !rounded-xl !h-11 !px-6 !transition-all !duration-300 !font-medium !border-0 !shadow-lg hover:!shadow-xl !text-white" />
         </div>
       </div>
     </motion.nav>

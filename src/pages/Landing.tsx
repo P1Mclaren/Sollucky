@@ -195,7 +195,7 @@ export default function Landing() {
               {
                 icon: Lock,
                 title: 'Pool Funds',
-                description: '70% to prize pool, 5% running costs, 25% operator — all automatic',
+                description: '70% to prize pool, 5% operational costs, 25% platform — all automatic',
                 color: 'from-accent to-accent/50',
               },
               {

@@ -29,7 +29,7 @@ const faqs = [
   },
   {
     question: 'How is the prize pool distributed?',
-    answer: 'For every ticket: 70% goes to the prize pool, 25% covers operational costs, and 5% goes to the platform. This split is enforced automatically by smart contracts and is transparent on-chain.',
+    answer: 'For every ticket: 70% goes to the prize pool, 5% covers operational costs, and 25% goes to the platform. This split is enforced automatically by smart contracts and is transparent on-chain.',
   },
 ];
 

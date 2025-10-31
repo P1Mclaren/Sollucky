@@ -28,9 +28,9 @@ export function LotteryCard({
       whileHover={{ y: -10 }}
       className="relative group"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
       
-      <div className="relative bg-card border border-primary/30 rounded-2xl p-6 shadow-neon hover:border-primary/50 transition-all duration-300">
+      <div className="relative bg-card border border-primary/30 rounded-2xl p-6 hover:border-primary/50 transition-all duration-300">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="font-orbitron text-2xl font-bold text-primary mb-2">{title}</h3>
@@ -75,7 +75,7 @@ export function LotteryCard({
         </div>
 
         <Button 
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-neon"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
           disabled={status === 'coming-soon'}
           onClick={() => document.getElementById('pre-order')?.scrollIntoView({ behavior: 'smooth' })}
         >

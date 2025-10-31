@@ -44,7 +44,7 @@ export function FAQ() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-4 text-glow-purple">
+          <h2 className="font-orbitron text-4xl md:text-5xl font-bold mb-4">
             Frequently Asked Questions
           </h2>
           <p className="text-muted-foreground text-lg">
@@ -64,9 +64,9 @@ export function FAQ() {
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="bg-card border border-primary/30 rounded-xl px-6 shadow-neon hover:border-primary/50 transition-colors"
+                className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl px-6 hover:border-primary/40 hover:bg-card/80 transition-all"
               >
-                <AccordionTrigger className="text-left font-semibold hover:text-primary">
+                <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">

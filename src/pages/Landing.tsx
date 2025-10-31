@@ -103,17 +103,17 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <LotteryCard
-              title="Monthly Lottery"
-              description="Unlimited tickets - Pre-order now with 2× bonus"
-              status="pre-order"
-              nextDraw="Coming Soon"
-              index={0}
-            />
-            <LotteryCard
               title="Weekly Lottery"
               description="Limited entries, better odds"
               ticketLimit={5000}
               status="coming-soon"
+              nextDraw="Coming Soon"
+              index={0}
+            />
+            <LotteryCard
+              title="Monthly Lottery"
+              description="Unlimited tickets - Pre-order now with 2× bonus"
+              status="pre-order"
               nextDraw="Coming Soon"
               index={1}
             />

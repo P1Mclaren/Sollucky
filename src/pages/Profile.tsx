@@ -2,22 +2,33 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ParticleBackground } from '@/components/ParticleBackground';
-import { Wallet, TrendingUp, Ticket, Clock, ArrowDownToLine } from 'lucide-react';
+import { Wallet, TrendingUp, Ticket, Gift, User, Copy, CheckCircle2, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Profile() {
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
+  const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
   const [balance, setBalance] = useState<number>(0);
   const [depositAmount, setDepositAmount] = useState('');
   const [preOrderTickets, setPreOrderTickets] = useState(0);
   const [transactions, setTransactions] = useState<Array<{date: string, type: string, amount: string, status: string}>>([]);
+
+  // Redirect if wallet not connected
+  useEffect(() => {
+    if (!connected) {
+      navigate('/');
+      toast.error('Please connect your wallet to view your profile');
+    }
+  }, [connected, navigate]);
 
   // Load wallet-specific data from localStorage
   useEffect(() => {
@@ -112,6 +123,19 @@ export default function Profile() {
     setDepositAmount('');
   };
 
+  const copyAddress = () => {
+    if (publicKey) {
+      navigator.clipboard.writeText(publicKey.toString());
+      setCopied(true);
+      toast.success('Address copied to clipboard');
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  if (!connected || !publicKey) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <ParticleBackground />
@@ -122,162 +146,324 @@ export default function Profile() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          className="max-w-7xl mx-auto"
         >
-          <h1 className="font-orbitron text-4xl md:text-5xl font-bold mb-4 text-glow-purple">
-            Wallet Profile
-          </h1>
-          {connected && publicKey && (
-            <p className="text-sm text-muted-foreground mb-8">
-              Connected: {publicKey.toString().slice(0, 4)}...{publicKey.toString().slice(-4)}
-            </p>
-          )}
-
-          {/* Wallet Status */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-card border-primary/30 p-6 shadow-neon">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <Wallet className="w-6 h-6 text-primary" />
+          {/* Profile Header */}
+          <div className="relative mb-12">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-3xl blur-2xl" />
+            <Card className="relative bg-card/80 backdrop-blur-sm border-primary/30 p-8 md:p-10 shadow-glow">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                {/* Avatar */}
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-2xl blur-xl opacity-50 animate-pulse-glow" />
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-neon">
+                    <User className="w-12 h-12 md:w-16 md:h-16 text-white" />
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Wallet Balance</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {connected ? `${balance.toFixed(4)} SOL` : 'Not Connected'}
+
+                {/* Profile Info */}
+                <div className="flex-1 text-center md:text-left">
+                  <h1 className="font-orbitron text-3xl md:text-5xl font-bold mb-4 text-glow-purple">
+                    My Profile
+                  </h1>
+                  <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+                    <div className="px-4 py-2 rounded-xl bg-background/80 border border-primary/30 backdrop-blur-sm">
+                      <p className="text-xs text-muted-foreground mb-1">Wallet Address</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-primary font-mono text-sm">
+                          {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
+                        </code>
+                        <button
+                          onClick={copyAddress}
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {copied ? (
+                            <CheckCircle2 className="w-4 h-4 text-accent" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground">
+                    Pre-launch member • Earning 2× bonus tickets
                   </p>
                 </div>
-              </div>
-            </Card>
 
-            <Card className="bg-card border-accent/30 p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-                  <Ticket className="w-6 h-6 text-accent" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Pre-Order Tickets</p>
-                  <p className="text-2xl font-bold text-accent">
-                    {preOrderTickets}/250
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-card border-border/50 p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Platform Launch</p>
-                  <p className="text-2xl font-bold text-accent">Coming Soon</p>
-                </div>
+                {/* View on Solscan */}
+                <Button
+                  variant="outline"
+                  className="border-primary/50 text-primary hover:bg-primary/10"
+                  onClick={() => window.open(`https://solscan.io/account/${publicKey.toString()}`, '_blank')}
+                >
+                  View on Solscan
+                  <ArrowUpRight className="w-4 h-4 ml-2" />
+                </Button>
               </div>
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Deposit & Pre-Order */}
-            <Card className="bg-card border-primary/30 p-8 shadow-neon">
-              <h2 className="font-orbitron text-2xl font-bold mb-6 flex items-center gap-2">
-                <ArrowDownToLine className="w-6 h-6 text-primary" />
-                Deposit & Pre-Order
-              </h2>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all hover:shadow-neon">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Wallet className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/30">
+                    <span className="text-xs font-medium text-primary">SOL</span>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">Balance</p>
+                <p className="text-2xl font-bold text-foreground font-orbitron">
+                  {balance.toFixed(4)}
+                </p>
+              </Card>
+            </motion.div>
 
-              {connected ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Card className="bg-card border-accent/30 p-6 hover:border-accent/50 transition-all hover:shadow-glow">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
+                    <Ticket className="w-6 h-6 text-accent" />
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-accent/10 border border-accent/30">
+                    <span className="text-xs font-medium text-accent">2× Bonus</span>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">Pre-Orders</p>
+                <p className="text-2xl font-bold text-foreground font-orbitron">
+                  {preOrderTickets}<span className="text-lg text-muted-foreground">/250</span>
+                </p>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Card className="bg-card border-border/50 p-6 hover:border-border transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-foreground" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">Transactions</p>
+                <p className="text-2xl font-bold text-foreground font-orbitron">
+                  {transactions.length}
+                </p>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Gift className="w-6 h-6 text-primary" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">Bonus Earned</p>
+                <p className="text-2xl font-bold text-primary font-orbitron">
+                  {preOrderTickets > 0 ? `${Math.floor(preOrderTickets / 2)}` : '0'}
+                </p>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Pre-Order Section - Takes 2 columns */}
+            <div className="lg:col-span-2 space-y-8">
+              <Card className="bg-card border-primary/30 p-8 shadow-neon">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Gift className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-orbitron text-2xl font-bold">Pre-Order Tickets</h2>
+                    <p className="text-sm text-muted-foreground">Get 2× bonus for Monthly lottery</p>
+                  </div>
+                </div>
+
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium mb-2">Amount (SOL)</label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={depositAmount}
-                      onChange={(e) => setDepositAmount(e.target.value)}
-                      className="bg-background border-border focus:border-primary"
-                    />
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        className="bg-background border-border focus:border-primary text-lg h-14 pr-20"
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                        SOL
+                      </div>
+                    </div>
+                    {depositAmount && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        ≈ {Math.floor(parseFloat(depositAmount || '0') * 170 * 2)} tickets (2× bonus)
+                      </p>
+                    )}
                   </div>
 
-                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/30">
-                    <p className="text-sm mb-2">
-                      <strong className="text-primary">2× Ticket Bonus</strong> for Monthly lottery pre-orders
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Pre-ordering now gives you double tickets when the platform launches (max 250 total)
-                    </p>
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/30">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Gift className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-primary mb-1">Double Ticket Bonus Active</p>
+                        <p className="text-sm text-muted-foreground">
+                          Pre-order now and receive 2× tickets when the platform launches. Maximum 250 pre-order tickets per wallet.
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <Button
                       onClick={handleDeposit}
                       variant="outline"
-                      className="border-primary/50 text-primary hover:bg-primary/10"
+                      size="lg"
+                      className="border-primary/50 text-primary hover:bg-primary/10 h-12"
                     >
                       Deposit Only
                     </Button>
                     <Button
                       onClick={handlePreOrder}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-neon"
+                      size="lg"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-neon h-12"
                     >
-                      Pre-Order Tickets
+                      Pre-Order Now
                     </Button>
                   </div>
-
-                  <p className="text-xs text-muted-foreground text-center">
-                    When the platform launches, all draws and payouts will run automatically via Solana smart contracts
-                  </p>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    Connect your wallet to deposit SOL and pre-order tickets
-                  </p>
-                  <p className="text-sm text-accent">
-                    Use the "Connect Wallet" button in the top navigation
-                  </p>
-                </div>
-              )}
-            </Card>
+              </Card>
 
-            {/* Transaction History */}
-            <Card className="bg-card border-border/50 p-8">
-              <h2 className="font-orbitron text-2xl font-bold mb-6 flex items-center gap-2">
-                <TrendingUp className="w-6 h-6 text-foreground" />
-                Transaction History
-              </h2>
-
-              <div className="space-y-4">
-                {transactions.length > 0 ? (
-                  transactions.map((tx, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-4 rounded-xl bg-background border border-border hover:border-primary/30 transition-colors"
-                    >
-                      <div>
-                        <p className="font-medium">{tx.type}</p>
-                        <p className="text-xs text-muted-foreground">{tx.date}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`font-bold ${tx.amount.startsWith('+') ? 'text-accent' : 'text-foreground'}`}>
-                          {tx.amount}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{tx.status}</p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No transactions yet. Pre-order tickets to get started.
+              {/* Transaction History */}
+              <Card className="bg-card border-border/50 p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-foreground" />
                   </div>
-                )}
-              </div>
-            </Card>
-          </div>
+                  <h2 className="font-orbitron text-2xl font-bold">Recent Activity</h2>
+                </div>
 
-          {/* Info Notice */}
-          <Card className="mt-8 bg-secondary/20 border-primary/30 p-6">
-            <p className="text-center text-muted-foreground">
-              <strong className="text-primary">Waitlist Mode:</strong> This is a pre-launch interface. All pre-order data is stored locally in your browser and linked to your wallet address. When the platform launches, all transactions will be processed through Solana smart contracts with full transparency and security.
-            </p>
-          </Card>
+                <div className="space-y-3">
+                  {transactions.length > 0 ? (
+                    transactions.map((tx, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className="flex items-center justify-between p-4 rounded-xl bg-background/50 border border-border hover:border-primary/30 transition-all"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <Ticket className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{tx.type}</p>
+                            <p className="text-xs text-muted-foreground">{tx.date}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold font-mono">{tx.amount}</p>
+                          <p className="text-xs text-accent">{tx.status}</p>
+                        </div>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                        <TrendingUp className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <p className="text-muted-foreground mb-2">No transactions yet</p>
+                      <p className="text-sm text-muted-foreground">
+                        Pre-order tickets to get started
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+
+            {/* Sidebar - Takes 1 column */}
+            <div className="space-y-8">
+              {/* Status Card */}
+              <Card className="bg-card border-accent/30 p-6">
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/30 mb-4">
+                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                    <span className="text-sm font-medium text-accent">Pre-Launch Member</span>
+                  </div>
+                  <h3 className="font-orbitron text-lg font-bold mb-2">Platform Status</h3>
+                  <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                    COMING SOON
+                  </p>
+                </div>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between py-2 border-t border-border/50">
+                    <span className="text-muted-foreground">Your Pre-Orders</span>
+                    <span className="font-bold text-primary">{preOrderTickets}/250</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-t border-border/50">
+                    <span className="text-muted-foreground">Bonus Multiplier</span>
+                    <span className="font-bold text-accent">2×</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-t border-border/50">
+                    <span className="text-muted-foreground">Next Lottery</span>
+                    <span className="font-bold">TBA</span>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Info Card */}
+              <Card className="bg-secondary/20 border-primary/30 p-6">
+                <h3 className="font-orbitron font-bold mb-3 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <Gift className="w-4 h-4 text-primary" />
+                  </div>
+                  Waitlist Benefits
+                </h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                    <span>2× bonus tickets on Monthly lottery</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                    <span>Early access to platform features</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                    <span>Automatic smart contract execution</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+                    <span>Transparent on-chain verification</span>
+                  </li>
+                </ul>
+              </Card>
+            </div>
+          </div>
         </motion.div>
       </div>
 

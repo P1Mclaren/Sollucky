@@ -44,7 +44,7 @@ export function Navbar() {
         </div>
         
         <div className="flex items-center gap-4">
-          <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !rounded-lg !h-10 !transition-all !duration-300 !shadow-neon hover:!shadow-glow" />
+          <WalletMultiButton className="wallet-adapter-button-custom !bg-gradient-to-r !from-primary !to-primary/80 hover:!from-primary/90 hover:!to-primary/70 !rounded-xl !h-12 !px-6 !font-medium !transition-all !duration-300 !shadow-lg hover:!shadow-glow !border !border-primary/20 hover:!border-primary/40 !text-white" />
         </div>
       </div>
     </motion.nav>

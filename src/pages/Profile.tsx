@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { ParticleBackground } from '@/components/ParticleBackground';
 import { Wallet, TrendingUp, Ticket, Gift, User, Copy, CheckCircle2, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const LOTTERY_WALLET = 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM';
 
@@ -22,6 +23,7 @@ export default function Profile() {
   const [balance, setBalance] = useState<number>(0);
   
   const [ticketAmount, setTicketAmount] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [preOrderTickets, setPreOrderTickets] = useState(0);
   const [bonusTickets, setBonusTickets] = useState(0);
   const [transactions, setTransactions] = useState<Array<{date: string, type: string, amount: string, status: string}>>([]);
@@ -74,6 +76,34 @@ export default function Profile() {
     const tickets = parseInt(ticketAmount);
     if (!tickets || tickets <= 0) {
       toast.error('Please enter the number of tickets');
+      return;
+    }
+
+    // Validate referral code is entered
+    const trimmedCode = referralCode.trim().toUpperCase();
+    if (!trimmedCode) {
+      toast.error('Referral code required to receive bonus tickets');
+      return;
+    }
+
+    // Check if referral code exists
+    const { data: codeData, error: codeError } = await supabase
+      .from('referral_codes')
+      .select('wallet_address')
+      .eq('code', trimmedCode)
+      .maybeSingle();
+
+    if (codeError || !codeData) {
+      toast.error('Invalid referral code');
+      return;
+    }
+
+    const referrerWallet = codeData.wallet_address;
+    const currentWallet = publicKey.toString();
+
+    // Can't use own referral code
+    if (referrerWallet === currentWallet) {
+      toast.error("You can't use your own referral code");
       return;
     }
 
@@ -157,6 +187,35 @@ export default function Profile() {
       setPreOrderTickets(newPreOrderTotal);
       setBonusTickets(newBonusTotal);
       setTransactions(updatedTxs);
+
+      // Record referral in database
+      try {
+        const { data: existingReferral } = await supabase
+          .from('referrals')
+          .select('*')
+          .eq('referred_wallet', currentWallet)
+          .maybeSingle();
+
+        if (existingReferral) {
+          // Update existing referral
+          await supabase
+            .from('referrals')
+            .update({ tickets_purchased: existingReferral.tickets_purchased + ticketsPurchased })
+            .eq('referred_wallet', currentWallet);
+        } else {
+          // Create new referral
+          await supabase
+            .from('referrals')
+            .insert({
+              referrer_wallet: referrerWallet,
+              referred_wallet: currentWallet,
+              referral_code: trimmedCode,
+              tickets_purchased: ticketsPurchased,
+            });
+        }
+      } catch (refError) {
+        console.error('Error recording referral:', refError);
+      }
       
       toast.success(`Purchased ${ticketsPurchased} tickets + ${bonusReceived} bonus!`, {
         description: `Transaction confirmed! View on Solscan`,
@@ -363,6 +422,21 @@ export default function Profile() {
                 </div>
 
                 <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Referral Code (Required)</label>
+                    <Input
+                      type="text"
+                      placeholder="Enter referral code"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                      className="bg-background border-border focus:border-primary text-lg h-14"
+                      maxLength={20}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Referral code required to receive bonus tickets
+                    </p>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium mb-2">Number of Tickets</label>
                     <div className="relative">

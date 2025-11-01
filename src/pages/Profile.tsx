@@ -435,7 +435,7 @@ export default function Profile() {
                       maxLength={20}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Referral code required to receive bonus tickets
+                      Don't have a code? Use <span className="text-primary font-semibold">BONUS2025</span>
                     </p>
                   </div>
 

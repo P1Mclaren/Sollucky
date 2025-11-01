@@ -20,7 +20,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [balance, setBalance] = useState<number>(0);
-  const [depositAmount, setDepositAmount] = useState('');
+  
   const [ticketAmount, setTicketAmount] = useState('');
   const [preOrderTickets, setPreOrderTickets] = useState(0);
   const [bonusTickets, setBonusTickets] = useState(0);
@@ -64,25 +64,6 @@ export default function Profile() {
     }
   };
 
-  const handleDeposit = async () => {
-    if (!connected) {
-      toast.error('Please connect your wallet first');
-      return;
-    }
-
-    const amount = parseFloat(depositAmount);
-    if (!amount || amount <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
-
-    toast.success(`Deposited ${amount} SOL`, {
-      description: 'Your deposit has been processed',
-    });
-    
-    setDepositAmount('');
-    fetchBalance();
-  };
 
   const handlePreOrder = async () => {
     if (!connected || !publicKey || !sendTransaction) {
@@ -424,23 +405,13 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <Button
-                      onClick={handleDeposit}
-                      variant="outline"
-                      size="lg"
-                      className="border-primary/50 text-primary hover:bg-primary/10 h-12"
-                    >
-                      Deposit Only
-                    </Button>
-                    <Button
-                      onClick={handlePreOrder}
-                      size="lg"
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12"
-                    >
-                      Pre-Order Now
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={handlePreOrder}
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 w-full"
+                  >
+                    Pre-Order Now
+                  </Button>
                 </div>
               </Card>
 

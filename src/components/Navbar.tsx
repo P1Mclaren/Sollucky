@@ -11,6 +11,8 @@ export function Navbar() {
   const { connected, publicKey, disconnect, select } = useWallet();
   const { setVisible } = useWalletModal();
   
+  const ADMIN_WALLET = "HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5";
+  const isAdmin = publicKey?.toString() === ADMIN_WALLET;
   const isActive = (path: string) => location.pathname === path;
   
   const handleConnect = () => {
@@ -70,6 +72,16 @@ export function Navbar() {
               >
                 Referrals
               </Link>
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className={`text-sm font-medium transition-colors ${
+                    isActive('/admin') ? 'text-primary' : 'text-foreground hover:text-primary'
+                  }`}
+                >
+                  Admin
+                </Link>
+              )}
             </>
           )}
         </div>

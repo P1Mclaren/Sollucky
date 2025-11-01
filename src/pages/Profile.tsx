@@ -27,6 +27,7 @@ export default function Profile() {
   const [preOrderTickets, setPreOrderTickets] = useState(0);
   const [bonusTickets, setBonusTickets] = useState(0);
   const [transactions, setTransactions] = useState<Array<{date: string, type: string, amount: string, status: string}>>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
 
   // Redirect if wallet not connected
   useEffect(() => {
@@ -36,18 +37,36 @@ export default function Profile() {
     }
   }, [connected, navigate]);
 
-  // Load wallet-specific data from localStorage
+  // Load wallet-specific data from database
   useEffect(() => {
-    if (publicKey) {
-      const walletAddress = publicKey.toString();
-      const storedTickets = localStorage.getItem(`sollucky_tickets_${walletAddress}`);
-      const storedBonus = localStorage.getItem(`sollucky_bonus_${walletAddress}`);
-      const storedTxs = localStorage.getItem(`sollucky_txs_${walletAddress}`);
+    const loadTickets = async () => {
+      if (!publicKey) return;
       
-      if (storedTickets) setPreOrderTickets(parseInt(storedTickets));
-      if (storedBonus) setBonusTickets(parseInt(storedBonus));
-      if (storedTxs) setTransactions(JSON.parse(storedTxs));
-    }
+      setIsLoadingTickets(true);
+      try {
+        const walletAddress = publicKey.toString();
+        const { data, error } = await supabase
+          .from('tickets')
+          .select('*')
+          .eq('wallet_address', walletAddress)
+          .maybeSingle();
+
+        if (!error && data) {
+          setPreOrderTickets(data.ticket_count);
+          setBonusTickets(data.bonus_tickets);
+        }
+        
+        // Still load transactions from localStorage for now
+        const storedTxs = localStorage.getItem(`sollucky_txs_${walletAddress}`);
+        if (storedTxs) setTransactions(JSON.parse(storedTxs));
+      } catch (error) {
+        console.error('Error loading tickets:', error);
+      } finally {
+        setIsLoadingTickets(false);
+      }
+    };
+
+    loadTickets();
   }, [publicKey]);
 
   useEffect(() => {
@@ -169,8 +188,26 @@ export default function Profile() {
         lastValidBlockHeight,
       });
 
-      // Success - update local state
+      // Call edge function to record purchase securely
       const walletAddress = publicKey.toString();
+      const { data, error } = await supabase.functions.invoke('purchase-tickets', {
+        body: {
+          walletAddress,
+          ticketAmount: ticketsPurchased,
+          referralCode: trimmedCode || null,
+          transactionSignature: signature
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to record purchase');
+      }
+
+      // Update local state with response from edge function
+      setPreOrderTickets(data.ticketCount);
+      setBonusTickets(data.bonusTickets);
+      
+      // Update transaction history locally
       const newTransaction = {
         date: new Date().toISOString().split('T')[0],
         type: 'Pre-Order',
@@ -179,43 +216,8 @@ export default function Profile() {
       };
       
       const updatedTxs = [newTransaction, ...transactions];
-      
-      localStorage.setItem(`sollucky_tickets_${walletAddress}`, newPreOrderTotal.toString());
-      localStorage.setItem(`sollucky_bonus_${walletAddress}`, newBonusTotal.toString());
       localStorage.setItem(`sollucky_txs_${walletAddress}`, JSON.stringify(updatedTxs));
-      
-      setPreOrderTickets(newPreOrderTotal);
-      setBonusTickets(newBonusTotal);
       setTransactions(updatedTxs);
-
-      // Record referral in database
-      try {
-        const { data: existingReferral } = await supabase
-          .from('referrals')
-          .select('*')
-          .eq('referred_wallet', currentWallet)
-          .maybeSingle();
-
-        if (existingReferral) {
-          // Update existing referral
-          await supabase
-            .from('referrals')
-            .update({ tickets_purchased: existingReferral.tickets_purchased + ticketsPurchased })
-            .eq('referred_wallet', currentWallet);
-        } else {
-          // Create new referral
-          await supabase
-            .from('referrals')
-            .insert({
-              referrer_wallet: referrerWallet,
-              referred_wallet: currentWallet,
-              referral_code: trimmedCode,
-              tickets_purchased: ticketsPurchased,
-            });
-        }
-      } catch (refError) {
-        console.error('Error recording referral:', refError);
-      }
       
       toast.success(`Purchased ${ticketsPurchased} tickets + ${bonusReceived} bonus!`, {
         description: `Transaction confirmed! View on Solscan`,
@@ -361,7 +363,7 @@ export default function Profile() {
                 </div>
                 <p className="text-sm text-muted-foreground mb-1">Pre-Order Tickets</p>
                 <p className="text-2xl font-bold text-foreground font-orbitron">
-                  {preOrderTickets}<span className="text-lg text-muted-foreground">/2500</span>
+                  {isLoadingTickets ? '...' : preOrderTickets}<span className="text-lg text-muted-foreground">/2500</span>
                 </p>
               </Card>
             </motion.div>
@@ -400,7 +402,7 @@ export default function Profile() {
                 </div>
                 <p className="text-sm text-muted-foreground mb-1">Bonus Tickets</p>
                 <p className="text-2xl font-bold text-accent font-orbitron">
-                  {bonusTickets}
+                  {isLoadingTickets ? '...' : bonusTickets}
                 </p>
               </Card>
             </motion.div>

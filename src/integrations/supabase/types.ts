@@ -62,6 +62,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tickets: {
+        Row: {
+          bonus_tickets: number
+          created_at: string
+          id: string
+          ticket_count: number
+          transaction_signature: string | null
+          updated_at: string
+          wallet_address: string
+        }
+        Insert: {
+          bonus_tickets?: number
+          created_at?: string
+          id?: string
+          ticket_count?: number
+          transaction_signature?: string | null
+          updated_at?: string
+          wallet_address: string
+        }
+        Update: {
+          bonus_tickets?: number
+          created_at?: string
+          id?: string
+          ticket_count?: number
+          transaction_signature?: string | null
+          updated_at?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       wallet_connections: {
         Row: {
           connection_count: number

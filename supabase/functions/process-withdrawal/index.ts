@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { PublicKey } from "https://esm.sh/@solana/web3.js@1.95.8";
+import { Connection, PublicKey, Transaction, SystemProgram, Keypair, sendAndConfirmTransaction } from "https://esm.sh/@solana/web3.js@1.87.6";
 import nacl from "https://esm.sh/tweetnacl@1.0.3";
 import bs58 from "https://esm.sh/bs58@5.0.0";
 
@@ -10,6 +10,7 @@ const corsHeaders = {
 };
 
 const MINIMUM_WITHDRAWAL_LAMPORTS = 10000000000; // $10 in lamports (assuming 1 SOL = $1)
+const SOLANA_NETWORK = 'https://api.devnet.solana.com';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -108,49 +109,98 @@ serve(async (req) => {
       );
     }
 
-    // Create withdrawal request
+    // Get lottery wallet private key
+    const lotteryPrivateKey = Deno.env.get('LOTTERY_WALLET_PRIVATE_KEY');
+    if (!lotteryPrivateKey) {
+      console.error('LOTTERY_WALLET_PRIVATE_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error: Withdrawal system not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Initiating instant SOL transfer...');
+
+    // Initialize Solana connection and lottery wallet
+    const connection = new Connection(SOLANA_NETWORK, 'confirmed');
+    const fromKeypair = Keypair.fromSecretKey(bs58.decode(lotteryPrivateKey));
+    const toPublicKey = new PublicKey(walletAddress);
+
+    console.log(`Sending ${amountLamports} lamports from ${fromKeypair.publicKey.toString()} to ${walletAddress}`);
+
+    let txSignature: string;
+    
+    try {
+      // Create and send transaction
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: fromKeypair.publicKey,
+          toPubkey: toPublicKey,
+          lamports: BigInt(amountLamports),
+        })
+      );
+
+      txSignature = await sendAndConfirmTransaction(
+        connection,
+        transaction,
+        [fromKeypair]
+      );
+
+      console.log(`Transaction successful: ${txSignature}`);
+    } catch (txError) {
+      console.error('Transaction failed:', txError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to send SOL. Please try again or contact support.',
+          details: txError instanceof Error ? txError.message : 'Unknown error'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create withdrawal record with completed status
     const { data: withdrawal, error: withdrawalError } = await supabase
       .from('withdrawal_requests')
       .insert({
         wallet_address: walletAddress,
         amount_lamports: amountLamports,
-        status: 'pending'
+        status: 'completed',
+        transaction_signature: txSignature,
+        processed_at: new Date().toISOString()
       })
       .select()
       .single();
 
     if (withdrawalError) {
-      console.error('Error creating withdrawal request:', withdrawalError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to create withdrawal request' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.error('Error creating withdrawal record (but SOL was sent!):', withdrawalError);
+      // Don't return error since SOL was already sent
     }
 
-    // Update earnings to reflect pending withdrawal
+    // Update earnings
     const newPendingLamports = BigInt(earnings.pending_lamports) - BigInt(amountLamports);
+    const newWithdrawnLamports = BigInt(earnings.withdrawn_lamports) + BigInt(amountLamports);
+    
     const { error: updateError } = await supabase
       .from('referral_earnings')
       .update({
-        pending_lamports: newPendingLamports.toString()
+        pending_lamports: newPendingLamports.toString(),
+        withdrawn_lamports: newWithdrawnLamports.toString()
       })
       .eq('wallet_address', walletAddress);
 
     if (updateError) {
-      console.error('Error updating earnings:', updateError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to update earnings' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.error('Error updating earnings (but SOL was sent!):', updateError);
+      // Don't return error since SOL was already sent
     }
 
-    console.log(`Withdrawal request created: ${withdrawal.id} for ${walletAddress}, amount: ${amountLamports}`);
+    console.log(`✓ Withdrawal completed: ${txSignature} for ${walletAddress}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        withdrawalId: withdrawal.id,
-        message: 'Withdrawal request submitted. Funds will be sent from the main wallet soon.' 
+        transactionSignature: txSignature,
+        withdrawalId: withdrawal?.id,
+        message: 'SOL sent successfully! Check your wallet.' 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

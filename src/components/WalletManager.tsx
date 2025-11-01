@@ -24,9 +24,6 @@ export function WalletManager() {
   }, [connected, isDisconnecting]);
 
   const handleConnect = () => {
-    // Clear any previous wallet selection
-    select(null);
-    // Show wallet modal
     setVisible(true);
   };
 
@@ -70,20 +67,17 @@ export function WalletManager() {
         }
       });
       
-      // Deselect current wallet
-      select(null);
-      
       // Small delay to ensure disconnect completes
       setTimeout(() => {
         setVisible(true);
+        setIsDisconnecting(false);
         toast.info('Select a wallet to connect');
-      }, 100);
+      }, 150);
       
     } catch (error) {
       console.error('Error changing wallet:', error);
       toast.error('Failed to change wallet');
-    } finally {
-      setTimeout(() => setIsDisconnecting(false), 200);
+      setIsDisconnecting(false);
     }
   };
 

@@ -14,7 +14,6 @@ export function Navbar() {
   const isActive = (path: string) => location.pathname === path;
   
   const handleConnect = () => {
-    select(null); // Clear previous selection
     setVisible(true);
   };
 

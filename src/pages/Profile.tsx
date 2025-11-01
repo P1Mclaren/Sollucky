@@ -23,6 +23,7 @@ export default function Profile() {
   const [depositAmount, setDepositAmount] = useState('');
   const [ticketAmount, setTicketAmount] = useState('');
   const [preOrderTickets, setPreOrderTickets] = useState(0);
+  const [bonusTickets, setBonusTickets] = useState(0);
   const [transactions, setTransactions] = useState<Array<{date: string, type: string, amount: string, status: string}>>([]);
 
   // Redirect if wallet not connected
@@ -38,9 +39,11 @@ export default function Profile() {
     if (publicKey) {
       const walletAddress = publicKey.toString();
       const storedTickets = localStorage.getItem(`sollucky_tickets_${walletAddress}`);
+      const storedBonus = localStorage.getItem(`sollucky_bonus_${walletAddress}`);
       const storedTxs = localStorage.getItem(`sollucky_txs_${walletAddress}`);
       
       if (storedTickets) setPreOrderTickets(parseInt(storedTickets));
+      if (storedBonus) setBonusTickets(parseInt(storedBonus));
       if (storedTxs) setTransactions(JSON.parse(storedTxs));
     }
   }, [publicKey]);
@@ -93,11 +96,13 @@ export default function Profile() {
       return;
     }
 
-    // Calculate total tickets they'll receive (2x bonus)
-    const ticketsReceived = tickets * 2;
-    const newTotal = preOrderTickets + ticketsReceived;
+    // Calculate tickets purchased and bonus received
+    const ticketsPurchased = tickets;
+    const bonusReceived = tickets; // Equal to purchased for 2x bonus
+    const newPreOrderTotal = preOrderTickets + ticketsPurchased;
+    const newBonusTotal = bonusTickets + bonusReceived;
     
-    if (newTotal > 2500) {
+    if (newPreOrderTotal > 2500) {
       toast.error('Maximum 2500 pre-order tickets allowed');
       return;
     }
@@ -164,13 +169,15 @@ export default function Profile() {
       
       const updatedTxs = [newTransaction, ...transactions];
       
-      localStorage.setItem(`sollucky_tickets_${walletAddress}`, newTotal.toString());
+      localStorage.setItem(`sollucky_tickets_${walletAddress}`, newPreOrderTotal.toString());
+      localStorage.setItem(`sollucky_bonus_${walletAddress}`, newBonusTotal.toString());
       localStorage.setItem(`sollucky_txs_${walletAddress}`, JSON.stringify(updatedTxs));
       
-      setPreOrderTickets(newTotal);
+      setPreOrderTickets(newPreOrderTotal);
+      setBonusTickets(newBonusTotal);
       setTransactions(updatedTxs);
       
-      toast.success(`Purchased ${tickets} tickets → Received ${ticketsReceived} tickets!`, {
+      toast.success(`Purchased ${ticketsPurchased} tickets + ${bonusReceived} bonus!`, {
         description: `Transaction confirmed! View on Solscan`,
         action: {
           label: 'View',
@@ -309,10 +316,10 @@ export default function Profile() {
                     <Ticket className="w-6 h-6 text-primary" />
                   </div>
                   <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/30">
-                    <span className="text-xs font-medium text-primary">2× Bonus</span>
+                    <span className="text-xs font-medium text-primary">Paid</span>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">Pre-Orders</p>
+                <p className="text-sm text-muted-foreground mb-1">Pre-Order Tickets</p>
                 <p className="text-2xl font-bold text-foreground font-orbitron">
                   {preOrderTickets}<span className="text-lg text-muted-foreground">/2500</span>
                 </p>
@@ -347,10 +354,13 @@ export default function Profile() {
                   <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
                     <Gift className="w-6 h-6 text-primary" />
                   </div>
+                  <div className="px-3 py-1 rounded-full bg-accent/20 border border-accent/30">
+                    <span className="text-xs font-medium text-accent">Free</span>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">Bonus Earned</p>
-                <p className="text-2xl font-bold text-primary font-orbitron">
-                  {preOrderTickets > 0 ? `${Math.floor(preOrderTickets / 2)}` : '0'}
+                <p className="text-sm text-muted-foreground mb-1">Bonus Tickets</p>
+                <p className="text-2xl font-bold text-accent font-orbitron">
+                  {bonusTickets}
                 </p>
               </Card>
             </motion.div>
@@ -524,7 +534,15 @@ export default function Profile() {
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>2× bonus tickets on Monthly lottery</span>
+                    <span>Get 1 bonus ticket for every ticket purchased</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Bonus tickets improve your winning chance</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Only paid tickets contribute to the prize pot</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />

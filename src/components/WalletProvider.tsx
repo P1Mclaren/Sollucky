@@ -18,15 +18,20 @@ function WalletConnectionManager({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (connected && publicKey) {
-      supabase
-        .from('wallet_connections')
-        .upsert({
-          wallet_address: publicKey.toString(),
-          wallet_name: wallet?.adapter?.name || 'Unknown',
-          last_connected: new Date().toISOString(),
-        }, { onConflict: 'wallet_address' })
-        .then(() => {})
-        .catch((err) => console.error('Failed to track:', err));
+      const track = async () => {
+        try {
+          await supabase
+            .from('wallet_connections')
+            .upsert({
+              wallet_address: publicKey.toString(),
+              wallet_name: wallet?.adapter?.name || 'Unknown',
+              last_connected: new Date().toISOString(),
+            }, { onConflict: 'wallet_address' });
+        } catch (err) {
+          console.error('Failed to track:', err);
+        }
+      };
+      track();
     }
   }, [connected, publicKey, wallet]);
 

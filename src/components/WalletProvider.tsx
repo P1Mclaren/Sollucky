@@ -3,7 +3,7 @@ import { ConnectionProvider, WalletProvider as SolanaWalletProvider } from '@sol
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,19 +12,19 @@ import '@solana/wallet-adapter-react-ui/styles.css';
 // Import custom wallet styles AFTER default styles to override them
 import '../styles/wallet-custom.css';
 
-// Inner component to track wallet connections
-function WalletConnectionTracker({ children }: { children: React.ReactNode }) {
-  const { publicKey, connected, wallet } = useWallet();
+// Inner component to track wallet connections and manage state
+function WalletConnectionManager({ children }: { children: React.ReactNode }) {
+  const { publicKey, connected, wallet, disconnect } = useWallet();
 
+  // Track connections in database
   useEffect(() => {
     if (connected && publicKey) {
-      // Track wallet connection in database
       const trackConnection = async () => {
         try {
           const walletAddress = publicKey.toString();
           const walletName = wallet?.adapter?.name || 'Unknown';
           
-          const { error } = await supabase
+          await supabase
             .from('wallet_connections')
             .upsert({
               wallet_address: walletAddress,
@@ -33,10 +33,6 @@ function WalletConnectionTracker({ children }: { children: React.ReactNode }) {
             }, {
               onConflict: 'wallet_address'
             });
-
-          if (error) {
-            console.error('Error tracking wallet connection:', error);
-          }
         } catch (err) {
           console.error('Failed to track connection:', err);
         }
@@ -45,6 +41,22 @@ function WalletConnectionTracker({ children }: { children: React.ReactNode }) {
       trackConnection();
     }
   }, [connected, publicKey, wallet]);
+
+  // Clear wallet adapter storage on disconnect to prevent auto-reconnect
+  const handleStorageClear = useCallback(() => {
+    if (!connected) {
+      // Clear wallet adapter's localStorage entries
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('walletName') || key.includes('wallet-adapter')) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+  }, [connected]);
+
+  useEffect(() => {
+    handleStorageClear();
+  }, [connected, handleStorageClear]);
 
   return <>{children}</>;
 }
@@ -63,11 +75,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <SolanaWalletProvider wallets={wallets} autoConnect={false}>
+      <SolanaWalletProvider 
+        wallets={wallets} 
+        autoConnect={false}
+        localStorageKey="sollucky-wallet"
+      >
         <WalletModalProvider>
-          <WalletConnectionTracker>
+          <WalletConnectionManager>
             {children}
-          </WalletConnectionTracker>
+          </WalletConnectionManager>
         </WalletModalProvider>
       </SolanaWalletProvider>
     </ConnectionProvider>

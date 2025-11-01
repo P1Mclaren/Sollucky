@@ -1,13 +1,39 @@
 import { Link, useLocation } from 'react-router-dom';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Wallet, LogOut } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function Navbar() {
   const location = useLocation();
-  const { connected } = useWallet();
+  const { connected, publicKey, disconnect, select } = useWallet();
+  const { setVisible } = useWalletModal();
   
   const isActive = (path: string) => location.pathname === path;
+  
+  const handleConnect = () => {
+    select(null); // Clear previous selection
+    setVisible(true);
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
+      // Clear wallet storage
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('walletName') || key.includes('wallet-adapter') || key === 'sollucky-wallet') {
+          localStorage.removeItem(key);
+        }
+      });
+      select(null);
+      toast.success('Disconnected');
+    } catch (error) {
+      console.error('Error disconnecting:', error);
+      toast.error('Failed to disconnect');
+    }
+  };
   
   return (
     <motion.nav
@@ -54,7 +80,33 @@ export function Navbar() {
         </div>
         
         <div className="flex items-center gap-4">
-          <WalletMultiButton />
+          {connected && publicKey ? (
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:block px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
+                <code className="text-xs font-mono text-primary">
+                  {publicKey.toString().slice(0, 4)}...{publicKey.toString().slice(-4)}
+                </code>
+              </div>
+              <Button
+                onClick={handleDisconnect}
+                variant="outline"
+                size="sm"
+                className="border-destructive/50 text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Disconnect</span>
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={handleConnect}
+              className="bg-primary hover:bg-primary/90"
+              size="sm"
+            >
+              <Wallet className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Connect Wallet</span>
+            </Button>
+          )}
         </div>
       </div>
     </motion.nav>

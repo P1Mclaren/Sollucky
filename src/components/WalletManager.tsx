@@ -1,32 +1,89 @@
 import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LogOut, RefreshCw, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 
 export function WalletManager() {
-  const { publicKey, disconnect, connected, wallet } = useWallet();
+  const { publicKey, disconnect, connected, wallet, select, wallets } = useWallet();
+  const { setVisible } = useWalletModal();
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+
+  // Prevent auto-reconnect by clearing storage
+  useEffect(() => {
+    if (!connected && !isDisconnecting) {
+      // Clear any wallet adapter localStorage on mount if not connected
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('walletName') || key === 'sollucky-wallet') {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+  }, [connected, isDisconnecting]);
+
+  const handleConnect = () => {
+    // Clear any previous wallet selection
+    select(null);
+    // Show wallet modal
+    setVisible(true);
+  };
 
   const handleDisconnect = async () => {
     try {
+      setIsDisconnecting(true);
       await disconnect();
-      toast.success('Wallet disconnected');
+      
+      // Clear all wallet-related localStorage
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('walletName') || key.includes('wallet-adapter') || key === 'sollucky-wallet') {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Deselect wallet
+      select(null);
+      
+      toast.success('Wallet disconnected successfully');
     } catch (error) {
       console.error('Error disconnecting wallet:', error);
       toast.error('Failed to disconnect wallet');
+    } finally {
+      setIsDisconnecting(false);
     }
   };
 
   const handleChangeWallet = async () => {
     try {
-      // Disconnect first to allow selecting a different wallet
-      await disconnect();
-      toast.info('Please select a wallet to connect');
-      // The WalletMultiButton will automatically show the modal
+      setIsDisconnecting(true);
+      
+      // Disconnect current wallet
+      if (connected) {
+        await disconnect();
+      }
+      
+      // Clear all wallet storage
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('walletName') || key.includes('wallet-adapter') || key === 'sollucky-wallet') {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Deselect current wallet
+      select(null);
+      
+      // Small delay to ensure disconnect completes
+      setTimeout(() => {
+        setVisible(true);
+        toast.info('Select a wallet to connect');
+      }, 100);
+      
     } catch (error) {
       console.error('Error changing wallet:', error);
       toast.error('Failed to change wallet');
+    } finally {
+      setTimeout(() => setIsDisconnecting(false), 200);
     }
   };
 
@@ -43,7 +100,12 @@ export function WalletManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <WalletMultiButton className="!bg-primary hover:!bg-primary/90" />
+          <Button 
+            onClick={handleConnect}
+            className="w-full bg-primary hover:bg-primary/90"
+          >
+            Select Wallet
+          </Button>
         </CardContent>
       </Card>
     );
@@ -63,7 +125,7 @@ export function WalletManager() {
       <CardContent className="space-y-4">
         <div className="p-3 rounded-lg bg-background border border-border">
           <p className="text-xs text-muted-foreground mb-1">Address</p>
-          <code className="text-sm font-mono text-primary">
+          <code className="text-sm font-mono text-primary break-all">
             {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
           </code>
         </div>
@@ -73,14 +135,16 @@ export function WalletManager() {
             onClick={handleChangeWallet}
             variant="outline"
             className="flex-1"
+            disabled={isDisconnecting}
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Change Wallet
+            <RefreshCw className={`w-4 h-4 mr-2 ${isDisconnecting ? 'animate-spin' : ''}`} />
+            Change
           </Button>
           <Button
             onClick={handleDisconnect}
             variant="outline"
             className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10"
+            disabled={isDisconnecting}
           >
             <LogOut className="w-4 h-4 mr-2" />
             Disconnect

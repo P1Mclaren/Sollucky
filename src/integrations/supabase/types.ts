@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      processed_transactions: {
+        Row: {
+          amount_lamports: number
+          id: string
+          processed_at: string
+          ticket_count: number
+          transaction_signature: string
+          wallet_address: string
+        }
+        Insert: {
+          amount_lamports: number
+          id?: string
+          processed_at?: string
+          ticket_count: number
+          transaction_signature: string
+          wallet_address: string
+        }
+        Update: {
+          amount_lamports?: number
+          id?: string
+          processed_at?: string
+          ticket_count?: number
+          transaction_signature?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       referral_codes: {
         Row: {
           code: string

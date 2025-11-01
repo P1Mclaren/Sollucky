@@ -1,35 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { WalletButton } from './WalletButton';
 
 export function Navbar() {
   const location = useLocation();
-  const { connected, publicKey, disconnect } = useWallet();
-  const previousPublicKey = useRef<string | null>(null);
+  const { connected } = useWallet();
   
   const isActive = (path: string) => location.pathname === path;
-
-  // Clear cache when wallet disconnects or changes
-  useEffect(() => {
-    const currentAddress = publicKey?.toString() || null;
-    
-    // If wallet was connected and now disconnected, or if wallet address changed
-    if (previousPublicKey.current && (!currentAddress || currentAddress !== previousPublicKey.current)) {
-      // Clear wallet adapter cache
-      const keysToRemove = ['walletName', 'walletAdapter', 'walletAccount'];
-      keysToRemove.forEach(key => {
-        try {
-          localStorage.removeItem(key);
-        } catch (e) {
-          console.error('Failed to clear wallet cache:', e);
-        }
-      });
-    }
-    
-    previousPublicKey.current = currentAddress;
-  }, [publicKey]);
   
   return (
     <motion.nav
@@ -66,7 +44,7 @@ export function Navbar() {
         </div>
         
         <div className="flex items-center gap-4">
-          <WalletMultiButton />
+          <WalletButton />
         </div>
       </div>
     </motion.nav>

@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      fund_splits: {
+        Row: {
+          created_at: string
+          creator_funds_lamports: number
+          id: string
+          lottery_funds_lamports: number
+          operator_funds_lamports: number
+          referral_code: string | null
+          referral_type: string
+          referrer_earnings_lamports: number
+          total_lamports: number
+          transaction_signature: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          creator_funds_lamports?: number
+          id?: string
+          lottery_funds_lamports?: number
+          operator_funds_lamports?: number
+          referral_code?: string | null
+          referral_type: string
+          referrer_earnings_lamports?: number
+          total_lamports: number
+          transaction_signature: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          creator_funds_lamports?: number
+          id?: string
+          lottery_funds_lamports?: number
+          operator_funds_lamports?: number
+          referral_code?: string | null
+          referral_type?: string
+          referrer_earnings_lamports?: number
+          total_lamports?: number
+          transaction_signature?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       processed_transactions: {
         Row: {
           amount_lamports: number
@@ -59,6 +101,36 @@ export type Database = {
           created_at?: string
           id?: string
           wallet_address?: string
+        }
+        Relationships: []
+      }
+      referral_earnings: {
+        Row: {
+          created_at: string
+          id: string
+          pending_lamports: number
+          total_earned_lamports: number
+          updated_at: string
+          wallet_address: string
+          withdrawn_lamports: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pending_lamports?: number
+          total_earned_lamports?: number
+          updated_at?: string
+          wallet_address: string
+          withdrawn_lamports?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pending_lamports?: number
+          total_earned_lamports?: number
+          updated_at?: string
+          wallet_address?: string
+          withdrawn_lamports?: number
         }
         Relationships: []
       }
@@ -143,6 +215,36 @@ export type Database = {
           last_connected?: string
           wallet_address?: string
           wallet_name?: string | null
+        }
+        Relationships: []
+      }
+      withdrawal_requests: {
+        Row: {
+          amount_lamports: number
+          created_at: string
+          id: string
+          processed_at: string | null
+          status: string
+          transaction_signature: string | null
+          wallet_address: string
+        }
+        Insert: {
+          amount_lamports: number
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+          transaction_signature?: string | null
+          wallet_address: string
+        }
+        Update: {
+          amount_lamports?: number
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+          transaction_signature?: string | null
+          wallet_address?: string
         }
         Relationships: []
       }

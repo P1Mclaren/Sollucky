@@ -9,9 +9,12 @@ const corsHeaders = {
 };
 
 // Configuration
-const LOTTERY_WALLET = 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM';
-const PRICE_PER_TICKET_SOL = 0.1; // 0.1 SOL per ticket
+const LOTTERY_WALLET = 'HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5';
+const PRICE_PER_TICKET_SOL = 1; // 1 SOL per ticket
 const SOLANA_NETWORK = 'devnet'; // Change to 'mainnet-beta' for production
+const OPERATOR_REFERRAL_CODE = "BONUS2025";
+const REFERRER_PERCENTAGE = 0.25; // 25% for referrers
+const FUND_SPLIT_PERCENTAGE = 0.30; // 30% to creator/operator, 70% to lottery
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -186,32 +189,107 @@ serve(async (req) => {
       );
     }
 
-    // Calculate bonus tickets from referral
+    // Calculate fund splits and referrer earnings
+    const totalLamports = actualTransferAmount;
     let bonusTickets = 0;
     let referrerWallet = null;
-
+    let referralType = 'none';
+    let creatorFundsLamports = 0;
+    let operatorFundsLamports = 0;
+    let lotteryFundsLamports = totalLamports;
+    let referrerEarningsLamports = 0;
+    
     if (referralCode) {
-      const { data: referralData, error: referralError } = await supabase
-        .from('referral_codes')
-        .select('wallet_address')
-        .eq('code', referralCode.toUpperCase())
-        .single();
+      console.log(`Processing referral code: ${referralCode.toUpperCase()}`);
+      
+      // Check if it's the operator code
+      if (referralCode.toUpperCase() === OPERATOR_REFERRAL_CODE) {
+        referralType = 'operator';
+        operatorFundsLamports = Math.floor(totalLamports * FUND_SPLIT_PERCENTAGE);
+        lotteryFundsLamports = totalLamports - operatorFundsLamports;
+        bonusTickets = Math.floor(ticketAmount * 0.1);
+        console.log(`Operator code used, operator funds: ${operatorFundsLamports}, lottery funds: ${lotteryFundsLamports}`);
+      } else {
+        // Look up creator referral code
+        const { data: referralData, error: referralError } = await supabase
+          .from('referral_codes')
+          .select('wallet_address')
+          .eq('code', referralCode.toUpperCase())
+          .single();
 
-      if (!referralError && referralData) {
-        referrerWallet = referralData.wallet_address;
-        bonusTickets = Math.floor(ticketAmount * 0.1); // 10% bonus
-        
-        // Record the referral
-        await supabase
-          .from('referrals')
-          .insert({
-            referral_code: referralCode.toUpperCase(),
-            referrer_wallet: referrerWallet,
-            referred_wallet: walletAddress,
-            tickets_purchased: ticketAmount
-          });
+        if (!referralError && referralData) {
+          referrerWallet = referralData.wallet_address;
+          referralType = 'creator';
+          
+          // Calculate creator funds (30% of total)
+          creatorFundsLamports = Math.floor(totalLamports * FUND_SPLIT_PERCENTAGE);
+          lotteryFundsLamports = totalLamports - creatorFundsLamports;
+          
+          // Calculate referrer earnings (25% of total for the referrer)
+          referrerEarningsLamports = Math.floor(totalLamports * REFERRER_PERCENTAGE);
+          
+          bonusTickets = Math.floor(ticketAmount * 0.1);
+          console.log(`Creator code used, creator funds: ${creatorFundsLamports}, referrer earnings: ${referrerEarningsLamports}, lottery funds: ${lotteryFundsLamports}`);
+          
+          // Record the referral
+          await supabase
+            .from('referrals')
+            .insert({
+              referral_code: referralCode.toUpperCase(),
+              referrer_wallet: referrerWallet,
+              referred_wallet: walletAddress,
+              tickets_purchased: ticketAmount
+            });
+          
+          // Get current earnings or create new
+          const { data: currentEarnings } = await supabase
+            .from('referral_earnings')
+            .select('*')
+            .eq('wallet_address', referrerWallet)
+            .single();
+
+          if (currentEarnings) {
+            // Update existing earnings
+            const newTotalEarned = Number(currentEarnings.total_earned_lamports) + referrerEarningsLamports;
+            const newPending = Number(currentEarnings.pending_lamports) + referrerEarningsLamports;
+            
+            await supabase
+              .from('referral_earnings')
+              .update({
+                total_earned_lamports: newTotalEarned,
+                pending_lamports: newPending
+              })
+              .eq('wallet_address', referrerWallet);
+          } else {
+            // Create new earnings record
+            await supabase
+              .from('referral_earnings')
+              .insert({
+                wallet_address: referrerWallet,
+                total_earned_lamports: referrerEarningsLamports,
+                pending_lamports: referrerEarningsLamports
+              });
+          }
+          
+          console.log(`Updated earnings for ${referrerWallet}: ${referrerEarningsLamports} lamports`);
+        }
       }
     }
+
+    // Record fund split for admin tracking
+    await supabase
+      .from('fund_splits')
+      .insert({
+        transaction_signature: transactionSignature,
+        wallet_address: walletAddress,
+        referral_code: referralCode?.toUpperCase() || null,
+        referral_type: referralType,
+        total_lamports: totalLamports,
+        creator_funds_lamports: creatorFundsLamports,
+        operator_funds_lamports: operatorFundsLamports,
+        lottery_funds_lamports: lotteryFundsLamports,
+        referrer_earnings_lamports: referrerEarningsLamports
+      });
 
     // Get or create ticket record for this wallet
     const { data: existingTickets, error: fetchError } = await supabase

@@ -7,6 +7,7 @@ import { WalletProvider } from "./components/WalletProvider";
 import Landing from "./pages/Landing";
 import Profile from "./pages/Profile";
 import Referrals from "./pages/Referrals";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/referrals" element={<Referrals />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/how-it-works" element={<HowItWorks />} />

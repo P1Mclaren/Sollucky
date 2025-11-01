@@ -10,7 +10,7 @@ import { Footer } from "@/components/Footer";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Users, Ticket } from "lucide-react";
+import { Copy, Users, Ticket, Wallet } from "lucide-react";
 
 interface Referral {
   id: string;
@@ -19,12 +19,23 @@ interface Referral {
   created_at: string;
 }
 
+interface ReferralEarnings {
+  total_earned_lamports: number;
+  withdrawn_lamports: number;
+  pending_lamports: number;
+}
+
+const LAMPORTS_PER_SOL = 1000000000;
+const MINIMUM_WITHDRAWAL_SOL = 10;
+
 const Referrals = () => {
   const { publicKey } = useWallet();
   const navigate = useNavigate();
   const [referralCode, setReferralCode] = useState("");
   const [newCode, setNewCode] = useState("");
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [earnings, setEarnings] = useState<ReferralEarnings | null>(null);
+  const [withdrawing, setWithdrawing] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -33,7 +44,22 @@ const Referrals = () => {
       return;
     }
     loadReferralData();
+    loadEarnings();
   }, [publicKey, navigate]);
+
+  const loadEarnings = async () => {
+    if (!publicKey) return;
+
+    const { data, error } = await supabase
+      .from("referral_earnings")
+      .select("*")
+      .eq("wallet_address", publicKey.toString())
+      .maybeSingle();
+
+    if (!error && data) {
+      setEarnings(data);
+    }
+  };
 
   const loadReferralData = async () => {
     if (!publicKey) return;
@@ -123,6 +149,38 @@ const Referrals = () => {
     toast.success("Referral code copied to clipboard!");
   };
 
+  const handleWithdraw = async () => {
+    if (!publicKey || !earnings) return;
+
+    const pendingSol = earnings.pending_lamports / LAMPORTS_PER_SOL;
+    
+    if (pendingSol < MINIMUM_WITHDRAWAL_SOL) {
+      toast.error(`You need at least ${MINIMUM_WITHDRAWAL_SOL} SOL to withdraw. Current balance: ${pendingSol.toFixed(2)} SOL`);
+      return;
+    }
+
+    setWithdrawing(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("process-withdrawal", {
+        body: {
+          walletAddress: publicKey.toString(),
+          amountLamports: earnings.pending_lamports,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(data.message);
+      loadEarnings();
+    } catch (error: any) {
+      console.error("Withdrawal error:", error);
+      toast.error(error.message || "Failed to process withdrawal");
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
   const totalReferrals = referrals.length;
   const totalTickets = referrals.reduce((sum, r) => sum + r.tickets_purchased, 0);
 
@@ -136,12 +194,12 @@ const Referrals = () => {
           <div>
             <h1 className="text-4xl font-bold mb-2">Referral Program</h1>
             <p className="text-muted-foreground">
-              Share your referral code and earn rewards when others use it
+              Share your referral code and earn 25% of ticket purchases
             </p>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
@@ -161,7 +219,49 @@ const Referrals = () => {
                 <div className="text-2xl font-bold">{totalTickets}</div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Earnings Available</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-500">
+                  {earnings ? (earnings.pending_lamports / LAMPORTS_PER_SOL).toFixed(2) : "0.00"} SOL
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Total earned: {earnings ? (earnings.total_earned_lamports / LAMPORTS_PER_SOL).toFixed(2) : "0.00"} SOL
+                </p>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* Withdrawal Card */}
+          {earnings && earnings.pending_lamports > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Withdraw Earnings</CardTitle>
+                <CardDescription>Request a withdrawal to your wallet</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Available balance: {(earnings.pending_lamports / LAMPORTS_PER_SOL).toFixed(2)} SOL
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Minimum withdrawal: {MINIMUM_WITHDRAWAL_SOL} SOL
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleWithdraw}
+                  disabled={withdrawing || (earnings.pending_lamports / LAMPORTS_PER_SOL) < MINIMUM_WITHDRAWAL_SOL}
+                  className="w-full md:w-auto"
+                >
+                  {withdrawing ? "Processing..." : "Request Withdrawal"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Referral Code Section */}
           <Card>
@@ -169,7 +269,7 @@ const Referrals = () => {
               <CardTitle>Your Referral Code</CardTitle>
               <CardDescription>
                 {referralCode
-                  ? "Share this code with others to earn rewards"
+                  ? "Share this code with others to earn 25% of their ticket purchases"
                   : "Create your unique referral code"}
               </CardDescription>
             </CardHeader>

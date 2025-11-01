@@ -12,33 +12,21 @@ import '@solana/wallet-adapter-react-ui/styles.css';
 // Import custom wallet styles AFTER default styles to override them
 import '../styles/wallet-custom.css';
 
-// Inner component to track wallet connections in database
+// Track wallet connections in database
 function WalletConnectionManager({ children }: { children: React.ReactNode }) {
   const { publicKey, connected, wallet } = useWallet();
 
-  // Track connections in database only on successful connection
   useEffect(() => {
     if (connected && publicKey) {
-      const trackConnection = async () => {
-        try {
-          const walletAddress = publicKey.toString();
-          const walletName = wallet?.adapter?.name || 'Unknown';
-          
-          await supabase
-            .from('wallet_connections')
-            .upsert({
-              wallet_address: walletAddress,
-              wallet_name: walletName,
-              last_connected: new Date().toISOString(),
-            }, {
-              onConflict: 'wallet_address'
-            });
-        } catch (err) {
-          console.error('Failed to track connection:', err);
-        }
-      };
-
-      trackConnection();
+      supabase
+        .from('wallet_connections')
+        .upsert({
+          wallet_address: publicKey.toString(),
+          wallet_name: wallet?.adapter?.name || 'Unknown',
+          last_connected: new Date().toISOString(),
+        }, { onConflict: 'wallet_address' })
+        .then(() => {})
+        .catch((err) => console.error('Failed to track:', err));
     }
   }, [connected, publicKey, wallet]);
 

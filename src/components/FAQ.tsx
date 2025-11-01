@@ -13,7 +13,7 @@ const faqs = [
   },
   {
     question: 'How do I play?',
-    answer: 'Connect your Solana wallet (Phantom or Solflare), deposit SOL, and pre-order tickets for the lottery you want to enter. Tickets are pegged at $1 USD worth of SOL. Pre-ordering Monthly tickets gives you 2× tickets (up to 250 max).',
+    answer: 'Connect your Solana wallet (Phantom or Solflare) and buy tickets for the lottery you want to enter. Tickets are pegged at $1 USD worth of SOL. Pre-ordering Monthly tickets gives you 2× tickets (up to 250 max). Payment is made directly when purchasing tickets.',
   },
   {
     question: 'How are winners chosen?',

@@ -19,14 +19,16 @@ export function Navbar() {
 
   const handleDisconnect = async () => {
     try {
+      // Disconnect wallet first
       await disconnect();
-      // Clear wallet storage
+      
+      // Clear all wallet-related localStorage AFTER disconnect completes
       Object.keys(localStorage).forEach(key => {
         if (key.includes('walletName') || key.includes('wallet-adapter') || key === 'sollucky-wallet') {
           localStorage.removeItem(key);
         }
       });
-      select(null);
+      
       toast.success('Disconnected');
     } catch (error) {
       console.error('Error disconnecting:', error);

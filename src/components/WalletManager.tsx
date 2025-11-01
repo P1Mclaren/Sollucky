@@ -30,17 +30,16 @@ export function WalletManager() {
   const handleDisconnect = async () => {
     try {
       setIsDisconnecting(true);
+      
+      // Disconnect wallet first
       await disconnect();
       
-      // Clear all wallet-related localStorage
+      // Clear all wallet-related localStorage AFTER disconnect completes
       Object.keys(localStorage).forEach(key => {
         if (key.includes('walletName') || key.includes('wallet-adapter') || key === 'sollucky-wallet') {
           localStorage.removeItem(key);
         }
       });
-      
-      // Deselect wallet
-      select(null);
       
       toast.success('Wallet disconnected successfully');
     } catch (error) {
@@ -55,24 +54,22 @@ export function WalletManager() {
     try {
       setIsDisconnecting(true);
       
-      // Disconnect current wallet
+      // Disconnect current wallet if connected
       if (connected) {
         await disconnect();
+        
+        // Clear storage only AFTER disconnect completes
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('walletName') || key.includes('wallet-adapter') || key === 'sollucky-wallet') {
+            localStorage.removeItem(key);
+          }
+        });
       }
       
-      // Clear all wallet storage
-      Object.keys(localStorage).forEach(key => {
-        if (key.includes('walletName') || key.includes('wallet-adapter') || key === 'sollucky-wallet') {
-          localStorage.removeItem(key);
-        }
-      });
-      
-      // Small delay to ensure disconnect completes
-      setTimeout(() => {
-        setVisible(true);
-        setIsDisconnecting(false);
-        toast.info('Select a wallet to connect');
-      }, 150);
+      // Show modal immediately - no delay needed
+      setVisible(true);
+      setIsDisconnecting(false);
+      toast.info('Select a wallet to connect');
       
     } catch (error) {
       console.error('Error changing wallet:', error);

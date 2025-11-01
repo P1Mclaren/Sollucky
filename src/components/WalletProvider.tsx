@@ -12,11 +12,11 @@ import '@solana/wallet-adapter-react-ui/styles.css';
 // Import custom wallet styles AFTER default styles to override them
 import '../styles/wallet-custom.css';
 
-// Inner component to track wallet connections and manage state
+// Inner component to track wallet connections in database
 function WalletConnectionManager({ children }: { children: React.ReactNode }) {
-  const { publicKey, connected, wallet, disconnect } = useWallet();
+  const { publicKey, connected, wallet } = useWallet();
 
-  // Track connections in database
+  // Track connections in database only on successful connection
   useEffect(() => {
     if (connected && publicKey) {
       const trackConnection = async () => {
@@ -41,22 +41,6 @@ function WalletConnectionManager({ children }: { children: React.ReactNode }) {
       trackConnection();
     }
   }, [connected, publicKey, wallet]);
-
-  // Clear wallet adapter storage on disconnect to prevent auto-reconnect
-  const handleStorageClear = useCallback(() => {
-    if (!connected) {
-      // Clear wallet adapter's localStorage entries
-      Object.keys(localStorage).forEach(key => {
-        if (key.includes('walletName') || key.includes('wallet-adapter')) {
-          localStorage.removeItem(key);
-        }
-      });
-    }
-  }, [connected]);
-
-  useEffect(() => {
-    handleStorageClear();
-  }, [connected, handleStorageClear]);
 
   return <>{children}</>;
 }

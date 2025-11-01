@@ -1,9 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Twitter, MessageCircle, Instagram } from 'lucide-react';
-
 export function Footer() {
-  return (
-    <footer className="relative border-t border-border/50 bg-card/50 backdrop-blur-xl">
+  return <footer className="relative border-t border-border/50 bg-card/50 backdrop-blur-xl">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
       
       <div className="container mx-auto px-4 py-12">
@@ -20,7 +18,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link to="/" className="hover:text-primary transition-colors">How It Works</Link></li>
               <li><Link to="/profile" className="hover:text-primary transition-colors">Profile</Link></li>
-              <li><Link to="/login" className="hover:text-primary transition-colors">Login</Link></li>
+              
             </ul>
           </div>
           
@@ -54,6 +52,5 @@ export function Footer() {
           <p className="text-primary">Powered by Solana Blockchain</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 }

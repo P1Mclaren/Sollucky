@@ -21,6 +21,7 @@ export default function Profile() {
   const [copied, setCopied] = useState(false);
   const [balance, setBalance] = useState<number>(0);
   const [depositAmount, setDepositAmount] = useState('');
+  const [ticketAmount, setTicketAmount] = useState('');
   const [preOrderTickets, setPreOrderTickets] = useState(0);
   const [transactions, setTransactions] = useState<Array<{date: string, type: string, amount: string, status: string}>>([]);
 
@@ -86,15 +87,13 @@ export default function Profile() {
       return;
     }
 
-    const amount = parseFloat(depositAmount);
-    if (!amount || amount <= 0) {
-      toast.error('Please enter an amount to pre-order');
+    const tickets = parseInt(ticketAmount);
+    if (!tickets || tickets <= 0) {
+      toast.error('Please enter the number of tickets');
       return;
     }
 
-    // Calculate tickets (2× bonus, $1 per ticket at ~$170/SOL = ~170 tickets per SOL)
-    const ticketsFromAmount = Math.floor(amount * 170 * 2);
-    const newTotal = preOrderTickets + ticketsFromAmount;
+    const newTotal = preOrderTickets + tickets;
     
     if (newTotal > 250) {
       toast.error('Maximum 250 pre-order tickets allowed');
@@ -102,8 +101,11 @@ export default function Profile() {
     }
 
     try {
-      // Convert SOL to lamports
-      const lamports = Math.floor(amount * LAMPORTS_PER_SOL);
+      // Calculate SOL needed (with 2x bonus: pay for half the tickets)
+      // Base rate: 170 tickets per SOL, so 1 ticket = 1/170 SOL
+      // With 2x bonus: pay for tickets/2, so SOL = tickets / 340
+      const solNeeded = tickets / 340;
+      const lamports = Math.floor(solNeeded * LAMPORTS_PER_SOL);
       
       // Estimate transaction fee (5000 lamports per signature)
       const estimatedFee = 5000;
@@ -155,7 +157,7 @@ export default function Profile() {
       const newTransaction = {
         date: new Date().toISOString().split('T')[0],
         type: 'Pre-Order',
-        amount: `-${amount} SOL`,
+        amount: `-${solNeeded.toFixed(4)} SOL`,
         status: 'Confirmed'
       };
       
@@ -167,7 +169,7 @@ export default function Profile() {
       setPreOrderTickets(newTotal);
       setTransactions(updatedTxs);
       
-      toast.success(`Pre-ordered ${ticketsFromAmount} tickets (2× bonus)`, {
+      toast.success(`Pre-ordered ${tickets} tickets (2× bonus)`, {
         description: `Transaction confirmed! View on Solscan`,
         action: {
           label: 'View',
@@ -175,7 +177,7 @@ export default function Profile() {
         },
       });
       
-      setDepositAmount('');
+      setTicketAmount('');
       fetchBalance(); // Refresh balance
       
     } catch (error: any) {
@@ -370,23 +372,30 @@ export default function Profile() {
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Amount (SOL)</label>
+                    <label className="block text-sm font-medium mb-2">Number of Tickets</label>
                     <div className="relative">
                       <Input
                         type="number"
-                        placeholder="0.00"
-                        value={depositAmount}
-                        onChange={(e) => setDepositAmount(e.target.value)}
-                        className="bg-background border-border focus:border-primary text-lg h-14 pr-20"
+                        placeholder="0"
+                        value={ticketAmount}
+                        onChange={(e) => setTicketAmount(e.target.value)}
+                        className="bg-background border-border focus:border-primary text-lg h-14 pr-24"
+                        min="1"
+                        step="1"
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                        SOL
+                        Tickets
                       </div>
                     </div>
-                    {depositAmount && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        ≈ {Math.floor(parseFloat(depositAmount || '0') * 170 * 2)} tickets (2× bonus)
-                      </p>
+                    {ticketAmount && parseInt(ticketAmount) > 0 && (
+                      <div className="mt-2 space-y-1">
+                        <p className="text-sm font-medium text-primary">
+                          Price: {(parseInt(ticketAmount) / 340).toFixed(4)} SOL
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          ≈ ${((parseInt(ticketAmount) / 340) * 170).toFixed(2)} USD
+                        </p>
+                      </div>
                     )}
                   </div>
 

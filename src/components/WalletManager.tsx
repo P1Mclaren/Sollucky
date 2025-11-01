@@ -15,13 +15,28 @@ export function WalletManager() {
 
   const handleDisconnect = async () => {
     setIsDisconnecting(true);
+    
+    // Clear wallet name BEFORE disconnect to prevent auto-reconnect
+    localStorage.removeItem('walletName');
+    
     await disconnect();
-    localStorage.clear();
     setIsDisconnecting(false);
     toast.success('Disconnected');
   };
 
-  const handleChangeWallet = () => setVisible(true);
+  const handleChangeWallet = async () => {
+    setIsDisconnecting(true);
+    
+    // Clear wallet name BEFORE disconnect
+    localStorage.removeItem('walletName');
+    
+    if (connected) {
+      await disconnect();
+    }
+    
+    setIsDisconnecting(false);
+    setVisible(true);
+  };
 
   if (!connected || !publicKey) {
     return (

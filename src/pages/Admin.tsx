@@ -11,7 +11,6 @@ import { ParticleBackground } from "@/components/ParticleBackground";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
-const ADMIN_WALLET = "HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5";
 const LAMPORTS_PER_SOL = 1000000000;
 
 interface FundSplit {
@@ -44,6 +43,7 @@ const Admin = () => {
   const [fundSplits, setFundSplits] = useState<FundSplit[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Totals
   const [totalCreatorFunds, setTotalCreatorFunds] = useState(0);
@@ -52,17 +52,26 @@ const Admin = () => {
   const [totalReferrerEarnings, setTotalReferrerEarnings] = useState(0);
 
   useEffect(() => {
-    if (!connected || !publicKey) {
-      navigate("/");
-      return;
-    }
+    const checkAdminAndFetchData = async () => {
+      if (!connected || !publicKey) {
+        navigate("/");
+        return;
+      }
 
-    if (publicKey.toString() !== ADMIN_WALLET) {
-      navigate("/");
-      return;
-    }
+      // Check if user has admin role
+      const { data: adminCheck } = await supabase
+        .rpc('has_role', { _wallet: publicKey.toString(), _role: 'admin' });
 
-    fetchData();
+      if (!adminCheck) {
+        navigate("/");
+        return;
+      }
+
+      setIsAdmin(true);
+      await fetchData();
+    };
+
+    checkAdminAndFetchData();
   }, [connected, publicKey, navigate]);
 
   const fetchData = async () => {

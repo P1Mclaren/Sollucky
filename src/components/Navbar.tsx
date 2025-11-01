@@ -5,15 +5,31 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Wallet, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from 'react';
 
 export function Navbar() {
   const location = useLocation();
   const { connected, publicKey, disconnect, select } = useWallet();
   const { setVisible } = useWalletModal();
-  
-  const ADMIN_WALLET = "HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5";
-  const isAdmin = publicKey?.toString() === ADMIN_WALLET;
+  const [isAdmin, setIsAdmin] = useState(false);
   const isActive = (path: string) => location.pathname === path;
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!publicKey) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .rpc('has_role', { _wallet: publicKey.toString(), _role: 'admin' });
+      
+      setIsAdmin(!!data);
+    };
+
+    checkAdmin();
+  }, [publicKey]);
   
   const handleConnect = () => {
     setVisible(true);

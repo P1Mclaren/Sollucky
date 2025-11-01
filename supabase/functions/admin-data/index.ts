@@ -6,8 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ADMIN_WALLET = "HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5";
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -16,20 +14,23 @@ serve(async (req) => {
   try {
     const { walletAddress } = await req.json();
 
-    // Verify admin wallet
-    if (walletAddress !== ADMIN_WALLET) {
+    // Use service role to check admin role and fetch admin data
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Verify admin role using has_role function
+    const { data: isAdmin, error: roleError } = await supabase
+      .rpc('has_role', { _wallet: walletAddress, _role: 'admin' });
+
+    if (roleError || !isAdmin) {
       console.log('Unauthorized admin access attempt from:', walletAddress);
       return new Response(
         JSON.stringify({ error: 'Unauthorized - Admin access only' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Use service role to fetch admin data
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
 
     // Fetch fund splits
     const { data: fundSplits, error: fundError } = await supabase

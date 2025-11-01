@@ -9,6 +9,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
 const ADMIN_WALLET = "HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5";
 const LAMPORTS_PER_SOL = 1000000000;
@@ -65,18 +66,28 @@ const Admin = () => {
   }, [connected, publicKey, navigate]);
 
   const fetchData = async () => {
+    if (!publicKey) return;
+
     setLoading(true);
 
-    // Fetch fund splits
-    const { data: splits, error: splitsError } = await supabase
-      .from("fund_splits")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      // Fetch admin data via secure Edge Function
+      const { data, error } = await supabase.functions.invoke('admin-data', {
+        body: { walletAddress: publicKey.toString() }
+      });
 
-    if (splitsError) {
-      console.error("Error fetching fund splits:", splitsError);
-    } else {
+      if (error) {
+        console.error('Error fetching admin data:', error);
+        toast.error("Failed to fetch admin data - Unauthorized");
+        navigate('/');
+        return;
+      }
+
+      const splits = data.fundSplits;
+      const withdrawalData = data.withdrawals;
+
       setFundSplits(splits || []);
+      setWithdrawals(withdrawalData || []);
       
       // Calculate totals
       let creatorTotal = 0;
@@ -84,7 +95,7 @@ const Admin = () => {
       let lotteryTotal = 0;
       let referrerTotal = 0;
 
-      splits?.forEach((split) => {
+      splits?.forEach((split: FundSplit) => {
         creatorTotal += Number(split.creator_funds_lamports) / LAMPORTS_PER_SOL;
         operatorTotal += Number(split.operator_funds_lamports) / LAMPORTS_PER_SOL;
         lotteryTotal += Number(split.lottery_funds_lamports) / LAMPORTS_PER_SOL;
@@ -95,21 +106,12 @@ const Admin = () => {
       setTotalOperatorFunds(operatorTotal);
       setTotalLotteryFunds(lotteryTotal);
       setTotalReferrerEarnings(referrerTotal);
+    } catch (error) {
+      console.error('Error in fetchData:', error);
+      toast.error("Failed to load admin dashboard");
+    } finally {
+      setLoading(false);
     }
-
-    // Fetch withdrawal requests
-    const { data: withdrawalData, error: withdrawalError } = await supabase
-      .from("withdrawal_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (withdrawalError) {
-      console.error("Error fetching withdrawals:", withdrawalError);
-    } else {
-      setWithdrawals(withdrawalData || []);
-    }
-
-    setLoading(false);
   };
 
   const lamportsToSol = (lamports: number) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useNavigate } from "react-router-dom";
+import bs58 from "bs58";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,7 @@ const LAMPORTS_PER_SOL = 1000000000;
 const MINIMUM_WITHDRAWAL_SOL = 10;
 
 const Referrals = () => {
-  const { publicKey } = useWallet();
+  const { publicKey, wallet } = useWallet();
   const navigate = useNavigate();
   const [referralCode, setReferralCode] = useState("");
   const [newCode, setNewCode] = useState("");
@@ -150,7 +151,7 @@ const Referrals = () => {
   };
 
   const handleWithdraw = async () => {
-    if (!publicKey || !earnings) return;
+    if (!publicKey || !wallet || !earnings) return;
 
     const pendingSol = earnings.pending_lamports / LAMPORTS_PER_SOL;
     
@@ -162,16 +163,35 @@ const Referrals = () => {
     setWithdrawing(true);
 
     try {
+      // Create message to sign
+      const message = JSON.stringify({
+        action: 'withdraw',
+        timestamp: Date.now(),
+        wallet: publicKey.toString()
+      });
+
+      // Request wallet signature to prove ownership
+      const messageBytes = new TextEncoder().encode(message);
+      
+      if (!('signMessage' in wallet.adapter) || typeof wallet.adapter.signMessage !== 'function') {
+        throw new Error('Wallet does not support message signing');
+      }
+      
+      const signatureUint8 = await (wallet.adapter as any).signMessage(messageBytes);
+      const signature = bs58.encode(signatureUint8);
+
       const { data, error } = await supabase.functions.invoke("process-withdrawal", {
         body: {
           walletAddress: publicKey.toString(),
           amountLamports: earnings.pending_lamports,
+          signature,
+          message
         },
       });
 
       if (error) throw error;
 
-      toast.success(data.message);
+      toast.success(data.message || "Withdrawal request submitted!");
       loadEarnings();
     } catch (error: any) {
       console.error("Withdrawal error:", error);

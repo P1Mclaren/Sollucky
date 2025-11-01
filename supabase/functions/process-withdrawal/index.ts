@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { PublicKey } from "https://esm.sh/@solana/web3.js@1.95.8";
+import nacl from "https://esm.sh/tweetnacl@1.0.3";
+import bs58 from "https://esm.sh/bs58@5.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,12 +17,59 @@ serve(async (req) => {
   }
 
   try {
-    const { walletAddress, amountLamports } = await req.json();
+    const { walletAddress, amountLamports, signature, message } = await req.json();
 
-    if (!walletAddress || !amountLamports) {
+    if (!walletAddress || !amountLamports || !signature || !message) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Missing required fields (walletAddress, amountLamports, signature, message)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Fix Issue #2: Verify wallet signature to prove ownership
+    try {
+      const publicKey = new PublicKey(walletAddress);
+      const messageBytes = new TextEncoder().encode(message);
+      const signatureBytes = bs58.decode(signature);
+      
+      const isValid = nacl.sign.detached.verify(
+        messageBytes,
+        signatureBytes,
+        publicKey.toBytes()
+      );
+      
+      if (!isValid) {
+        console.log('Invalid signature for withdrawal request:', walletAddress);
+        return new Response(
+          JSON.stringify({ error: 'Invalid wallet signature - you must prove wallet ownership' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Verify message content and timestamp
+      const messageData = JSON.parse(message);
+      if (messageData.action !== 'withdraw' || messageData.wallet !== walletAddress) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid message content' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Check timestamp - must be within 5 minutes
+      const timeDiff = Date.now() - messageData.timestamp;
+      if (timeDiff > 300000 || timeDiff < 0) {
+        return new Response(
+          JSON.stringify({ error: 'Signature expired or invalid timestamp - please try again' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log('Withdrawal signature verified for:', walletAddress);
+    } catch (verifyError) {
+      console.error('Signature verification error:', verifyError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify wallet signature' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

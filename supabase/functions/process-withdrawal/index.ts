@@ -13,21 +13,31 @@ const MINIMUM_WITHDRAWAL_LAMPORTS = 10000000000; // $10 in lamports (assuming 1 
 const SOLANA_NETWORK = 'https://api.devnet.solana.com';
 
 serve(async (req) => {
+  console.log('=== PROCESS-WITHDRAWAL FUNCTION STARTED ===');
+  console.log(`Request method: ${req.method}`);
+  
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { walletAddress, amountLamports, signature, message } = await req.json();
+    console.log('📝 Withdrawal request:', { walletAddress, amountLamports });
 
+    console.log('🔍 Validating required fields...');
     if (!walletAddress || !amountLamports || !signature || !message) {
+      console.error('❌ Missing required fields');
       return new Response(
         JSON.stringify({ error: 'Missing required fields (walletAddress, amountLamports, signature, message)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('✅ Required fields present');
+
     // Fix Issue #2: Verify wallet signature to prove ownership
+    console.log('🔐 Verifying wallet signature...');
     try {
       const publicKey = new PublicKey(walletAddress);
       const messageBytes = new TextEncoder().encode(message);
@@ -40,7 +50,7 @@ serve(async (req) => {
       );
       
       if (!isValid) {
-        console.log('Invalid signature for withdrawal request:', walletAddress);
+        console.error('❌ Invalid signature for withdrawal request:', walletAddress);
         return new Response(
           JSON.stringify({ error: 'Invalid wallet signature - you must prove wallet ownership' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -65,29 +75,35 @@ serve(async (req) => {
         );
       }
       
-      console.log('Withdrawal signature verified for:', walletAddress);
+      console.log('✅ Wallet signature verified');
     } catch (verifyError) {
-      console.error('Signature verification error:', verifyError);
+      console.error('❌ Signature verification error:', verifyError);
       return new Response(
         JSON.stringify({ error: 'Failed to verify wallet signature' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('🔌 Initializing Supabase client...');
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     // Check minimum withdrawal amount
+    console.log('🔍 Checking minimum withdrawal amount...');
     if (amountLamports < MINIMUM_WITHDRAWAL_LAMPORTS) {
+      console.error('❌ Amount below minimum:', amountLamports);
       return new Response(
         JSON.stringify({ error: 'Minimum withdrawal is $10' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('✅ Amount meets minimum requirement');
+
     // Get user's earnings
+    console.log('💰 Fetching user earnings...');
     const { data: earnings, error: earningsError } = await supabase
       .from('referral_earnings')
       .select('*')
@@ -95,42 +111,58 @@ serve(async (req) => {
       .single();
 
     if (earningsError || !earnings) {
+      console.error('❌ No earnings found for wallet:', walletAddress);
       return new Response(
         JSON.stringify({ error: 'No earnings found for this wallet' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log(`✅ Earnings found - Pending: ${earnings.pending_lamports} lamports`);
+
     // Check if user has enough pending balance
+    console.log('🔍 Checking sufficient balance...');
     if (BigInt(earnings.pending_lamports) < BigInt(amountLamports)) {
+      console.error('❌ Insufficient balance:', {
+        pending: earnings.pending_lamports,
+        requested: amountLamports
+      });
       return new Response(
         JSON.stringify({ error: 'Insufficient pending balance' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('✅ Sufficient balance confirmed');
+
     // Get lottery wallet private key
+    console.log('🔑 Loading lottery wallet credentials...');
     const lotteryPrivateKey = Deno.env.get('LOTTERY_WALLET_PRIVATE_KEY');
     if (!lotteryPrivateKey) {
-      console.error('LOTTERY_WALLET_PRIVATE_KEY not configured');
+      console.error('❌ LOTTERY_WALLET_PRIVATE_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'Server configuration error: Withdrawal system not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Initiating instant SOL transfer...');
+    console.log('✅ Wallet credentials loaded');
+    console.log('🚀 Initiating instant SOL transfer...');
 
     // Initialize Solana connection and lottery wallet
+    console.log('🔗 Connecting to Solana network...');
     const connection = new Connection(SOLANA_NETWORK, 'confirmed');
     const fromKeypair = Keypair.fromSecretKey(bs58.decode(lotteryPrivateKey));
     const toPublicKey = new PublicKey(walletAddress);
 
-    console.log(`Sending ${amountLamports} lamports from ${fromKeypair.publicKey.toString()} to ${walletAddress}`);
+    console.log(`💸 Sending ${amountLamports} lamports`);
+    console.log(`   From: ${fromKeypair.publicKey.toString()}`);
+    console.log(`   To: ${walletAddress}`);
 
     let txSignature: string;
     
     try {
+      console.log('📝 Creating Solana transaction...');
       // Create and send transaction
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -140,15 +172,18 @@ serve(async (req) => {
         })
       );
 
+      console.log('✍️ Signing and sending transaction...');
       txSignature = await sendAndConfirmTransaction(
         connection,
         transaction,
         [fromKeypair]
       );
 
-      console.log(`Transaction successful: ${txSignature}`);
+      console.log(`✅ Transaction successful!`);
+      console.log(`   Signature: ${txSignature}`);
     } catch (txError) {
-      console.error('Transaction failed:', txError);
+      console.error('❌ Transaction failed:', txError);
+      console.error('   Error details:', txError instanceof Error ? txError.message : 'Unknown error');
       return new Response(
         JSON.stringify({ 
           error: 'Failed to send SOL. Please try again or contact support.',
@@ -159,6 +194,7 @@ serve(async (req) => {
     }
 
     // Create withdrawal record with completed status
+    console.log('💾 Recording withdrawal in database...');
     const { data: withdrawal, error: withdrawalError } = await supabase
       .from('withdrawal_requests')
       .insert({
@@ -172,11 +208,14 @@ serve(async (req) => {
       .single();
 
     if (withdrawalError) {
-      console.error('Error creating withdrawal record (but SOL was sent!):', withdrawalError);
+      console.error('⚠️ Error creating withdrawal record (but SOL was sent!):', withdrawalError);
       // Don't return error since SOL was already sent
+    } else {
+      console.log('✅ Withdrawal record created:', withdrawal.id);
     }
 
     // Update earnings
+    console.log('📊 Updating earnings records...');
     const newPendingLamports = BigInt(earnings.pending_lamports) - BigInt(amountLamports);
     const newWithdrawnLamports = BigInt(earnings.withdrawn_lamports) + BigInt(amountLamports);
     
@@ -189,11 +228,17 @@ serve(async (req) => {
       .eq('wallet_address', walletAddress);
 
     if (updateError) {
-      console.error('Error updating earnings (but SOL was sent!):', updateError);
+      console.error('⚠️ Error updating earnings (but SOL was sent!):', updateError);
       // Don't return error since SOL was already sent
+    } else {
+      console.log('✅ Earnings updated successfully');
+      console.log(`   New pending: ${newPendingLamports}`);
+      console.log(`   New withdrawn: ${newWithdrawnLamports}`);
     }
 
-    console.log(`✓ Withdrawal completed: ${txSignature} for ${walletAddress}`);
+    console.log('🎉 Withdrawal completed successfully!');
+    console.log(`   Transaction: ${txSignature}`);
+    console.log(`   Wallet: ${walletAddress}`);
 
     return new Response(
       JSON.stringify({ 

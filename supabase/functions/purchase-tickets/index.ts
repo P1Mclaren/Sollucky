@@ -15,17 +15,29 @@ const OPERATOR_REFERRAL_CODE = "BONUS2025";
 const FUND_SPLIT_PERCENTAGE = 0.30; // 30% to creator/operator, 70% to lottery
 
 serve(async (req) => {
+  console.log('=== PURCHASE-TICKETS FUNCTION STARTED ===');
+  console.log(`Request method: ${req.method}`);
+  console.log(`Request URL: ${req.url}`);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { walletAddress, ticketAmount, referralCode, txSignature } = await req.json();
-    console.log('Purchase request:', { walletAddress, ticketAmount, referralCode, txSignature });
+    console.log('📝 Purchase request received:', { 
+      walletAddress, 
+      ticketAmount, 
+      referralCode: referralCode || 'NONE', 
+      txSignature 
+    });
 
     // Validate inputs
+    console.log('🔍 Validating inputs...');
     if (!walletAddress || !ticketAmount || !txSignature) {
+      console.error('❌ Validation failed: Missing required fields');
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -33,8 +45,10 @@ serve(async (req) => {
     }
 
     // Validate wallet address format
+    console.log('🔍 Validating wallet address format...');
     const walletRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
     if (!walletRegex.test(walletAddress)) {
+      console.error('❌ Invalid wallet address format:', walletAddress);
       return new Response(
         JSON.stringify({ error: 'Invalid wallet address format' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -42,7 +56,9 @@ serve(async (req) => {
     }
 
     // Validate ticket amount
+    console.log('🔍 Validating ticket amount...');
     if (ticketAmount < 1 || ticketAmount > 1000) {
+      console.error('❌ Invalid ticket amount:', ticketAmount);
       return new Response(
         JSON.stringify({ error: 'Ticket amount must be between 1 and 1000' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

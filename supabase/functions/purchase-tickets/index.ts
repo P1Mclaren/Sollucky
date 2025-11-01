@@ -332,7 +332,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true,
-          tickets: newTicketCount,
+          ticketCount: newTicketCount,
           bonusTickets: newBonusCount,
           message: `Successfully purchased ${ticketAmount} ticket(s)${bonusTickets > 0 ? ` + ${bonusTickets} bonus` : ''}!`
         }),
@@ -362,7 +362,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true,
-          tickets: ticketAmount,
+          ticketCount: ticketAmount,
           bonusTickets: bonusTickets,
           message: `Successfully purchased ${ticketAmount} ticket(s)${bonusTickets > 0 ? ` + ${bonusTickets} bonus` : ''}!`
         }),

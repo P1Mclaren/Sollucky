@@ -45,12 +45,6 @@ export default function Profile() {
       if (storedTickets) setPreOrderTickets(parseInt(storedTickets));
       if (storedBonus) setBonusTickets(parseInt(storedBonus));
       if (storedTxs) setTransactions(JSON.parse(storedTxs));
-    } else {
-      // Reset state when wallet disconnects
-      setPreOrderTickets(0);
-      setBonusTickets(0);
-      setTransactions([]);
-      setBalance(0);
     }
   }, [publicKey]);
 

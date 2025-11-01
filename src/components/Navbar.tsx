@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { motion } from 'framer-motion';
-import { WalletButton } from './WalletButton';
 
 export function Navbar() {
   const location = useLocation();
@@ -44,7 +44,7 @@ export function Navbar() {
         </div>
         
         <div className="flex items-center gap-4">
-          <WalletButton />
+          <WalletMultiButton />
         </div>
       </div>
     </motion.nav>

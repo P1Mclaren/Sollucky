@@ -7,21 +7,9 @@ import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 
 export function WalletManager() {
-  const { publicKey, disconnect, connected, wallet, select, wallets } = useWallet();
+  const { publicKey, disconnect, connected, wallet } = useWallet();
   const { setVisible } = useWalletModal();
   const [isDisconnecting, setIsDisconnecting] = useState(false);
-
-  // Prevent auto-reconnect by clearing storage
-  useEffect(() => {
-    if (!connected && !isDisconnecting) {
-      // Clear any wallet adapter localStorage on mount if not connected
-      Object.keys(localStorage).forEach(key => {
-        if (key.includes('walletName') || key === 'sollucky-wallet') {
-          localStorage.removeItem(key);
-        }
-      });
-    }
-  }, [connected, isDisconnecting]);
 
   const handleConnect = () => {
     setVisible(true);

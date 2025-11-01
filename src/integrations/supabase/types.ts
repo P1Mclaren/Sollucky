@@ -62,6 +62,33 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_connections: {
+        Row: {
+          connection_count: number
+          created_at: string
+          id: string
+          last_connected: string
+          wallet_address: string
+          wallet_name: string | null
+        }
+        Insert: {
+          connection_count?: number
+          created_at?: string
+          id?: string
+          last_connected?: string
+          wallet_address: string
+          wallet_name?: string | null
+        }
+        Update: {
+          connection_count?: number
+          created_at?: string
+          id?: string
+          last_connected?: string
+          wallet_address?: string
+          wallet_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -13,7 +13,6 @@ import { Wallet, TrendingUp, Ticket, Gift, User, Copy, CheckCircle2, ArrowUpRigh
 import { toast } from 'sonner';
 
 const LOTTERY_WALLET = 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM';
-const OPERATOR_WALLET = 'HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5';
 
 export default function Profile() {
   const { publicKey, connected, sendTransaction } = useWallet();
@@ -106,8 +105,8 @@ export default function Profile() {
       // Convert SOL to lamports
       const lamports = Math.floor(amount * LAMPORTS_PER_SOL);
       
-      // Estimate transaction fee (5000 lamports per signature, 2 instructions = 10000 lamports)
-      const estimatedFee = 10000;
+      // Estimate transaction fee (5000 lamports per signature)
+      const estimatedFee = 5000;
       const totalRequired = lamports + estimatedFee;
       
       // Check if user has enough balance
@@ -119,25 +118,16 @@ export default function Profile() {
         return;
       }
 
-      // Calculate splits
-      const lotteryAmount = Math.floor(lamports * 0.7); // 70%
-      const operatorAmount = Math.floor(lamports * 0.3); // 30%
-
       toast.info('Processing transaction...', {
         description: 'Please confirm in your wallet',
       });
 
-      // Create transaction with both transfers
+      // Create transaction with single transfer to lottery wallet
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
           toPubkey: new PublicKey(LOTTERY_WALLET),
-          lamports: lotteryAmount,
-        }),
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: new PublicKey(OPERATOR_WALLET),
-          lamports: operatorAmount,
+          lamports: lamports,
         })
       );
 

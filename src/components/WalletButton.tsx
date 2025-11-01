@@ -1,71 +1,87 @@
 import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useEffect, useRef } from 'react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { useState, useEffect } from 'react';
+import { Button } from './ui/button';
 
 export function WalletButton() {
-  const { publicKey, disconnect } = useWallet();
-  const previousPublicKey = useRef<string | null>(null);
+  const { publicKey, wallet, connect, disconnect, connecting } = useWallet();
+  const { setVisible } = useWalletModal();
+  const [mounted, setMounted] = useState(false);
 
-  // Clear localStorage when wallet disconnects or changes
+  // Aggressively clear all wallet storage on mount
   useEffect(() => {
-    const currentAddress = publicKey?.toString() || null;
-    
-    // Wallet disconnected or changed
-    if (previousPublicKey.current && previousPublicKey.current !== currentAddress) {
-      // Clear all wallet-related localStorage
-      const keysToRemove: string[] = [];
-      
-      // Get all localStorage keys
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key) {
-          keysToRemove.push(key);
-        }
-      }
-      
-      // Remove wallet adapter keys
-      keysToRemove.forEach(key => {
-        if (key.includes('wallet') || key === 'sollucky-wallet') {
-          try {
-            localStorage.removeItem(key);
-          } catch (e) {
-            console.error('Failed to clear wallet cache:', e);
-          }
+    if (!mounted) {
+      // Clear ALL storage related to wallets
+      const allKeys = Object.keys(localStorage);
+      allKeys.forEach(key => {
+        if (key.includes('wallet') || key.includes('solana') || key === 'sollucky-wallet') {
+          localStorage.removeItem(key);
         }
       });
+      
+      // Also clear sessionStorage
+      const sessionKeys = Object.keys(sessionStorage);
+      sessionKeys.forEach(key => {
+        if (key.includes('wallet') || key.includes('solana')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+      
+      setMounted(true);
     }
-    
-    previousPublicKey.current = currentAddress;
-  }, [publicKey]);
+  }, [mounted]);
 
-  // Override disconnect to also clear cache
+  // Force disconnect if wallet tries to auto-connect
+  useEffect(() => {
+    if (mounted && publicKey && wallet) {
+      // If we detect a connection we didn't initiate, disconnect it
+      disconnect().catch(() => {});
+    }
+  }, [mounted]);
+
+  const handleConnect = async () => {
+    if (!wallet) {
+      setVisible(true);
+    } else {
+      try {
+        await connect();
+      } catch (error) {
+        console.error('Connection error:', error);
+      }
+    }
+  };
+
   const handleDisconnect = async () => {
     try {
-      // Clear all wallet-related localStorage
-      const keysToRemove: string[] = [];
-      
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key) {
-          keysToRemove.push(key);
-        }
-      }
-      
-      keysToRemove.forEach(key => {
-        if (key.includes('wallet') || key === 'sollucky-wallet') {
-          try {
-            localStorage.removeItem(key);
-          } catch (e) {
-            console.error('Failed to clear wallet cache:', e);
-          }
+      // Clear all wallet storage
+      const allKeys = Object.keys(localStorage);
+      allKeys.forEach(key => {
+        if (key.includes('wallet') || key.includes('solana') || key === 'sollucky-wallet') {
+          localStorage.removeItem(key);
         }
       });
       
       await disconnect();
     } catch (error) {
-      console.error('Error disconnecting:', error);
+      console.error('Disconnect error:', error);
     }
   };
 
-  return <WalletMultiButton />;
+  if (!mounted) {
+    return <Button disabled>Loading...</Button>;
+  }
+
+  if (publicKey) {
+    return (
+      <Button onClick={handleDisconnect} variant="outline">
+        {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+      </Button>
+    );
+  }
+
+  return (
+    <Button onClick={handleConnect} disabled={connecting}>
+      {connecting ? 'Connecting...' : 'Connect Wallet'}
+    </Button>
+  );
 }

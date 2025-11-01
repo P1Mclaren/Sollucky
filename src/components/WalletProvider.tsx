@@ -27,7 +27,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       <SolanaWalletProvider 
         wallets={wallets} 
         autoConnect={false}
-        localStorageKey="sollucky-wallet"
       >
         <WalletModalProvider>
           {children}

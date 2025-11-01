@@ -93,18 +93,19 @@ export default function Profile() {
       return;
     }
 
-    const newTotal = preOrderTickets + tickets;
+    // Calculate total tickets they'll receive (2x bonus)
+    const ticketsReceived = tickets * 2;
+    const newTotal = preOrderTickets + ticketsReceived;
     
-    if (newTotal > 250) {
-      toast.error('Maximum 250 pre-order tickets allowed');
+    if (newTotal > 2500) {
+      toast.error('Maximum 2500 pre-order tickets allowed');
       return;
     }
 
     try {
-      // Calculate SOL needed (with 2x bonus: pay for half the tickets)
+      // Calculate SOL needed (normal price: $1 per ticket at ~$170/SOL)
       // Base rate: 170 tickets per SOL, so 1 ticket = 1/170 SOL
-      // With 2x bonus: pay for tickets/2, so SOL = tickets / 340
-      const solNeeded = tickets / 340;
+      const solNeeded = tickets / 170;
       const lamports = Math.floor(solNeeded * LAMPORTS_PER_SOL);
       
       // Estimate transaction fee (5000 lamports per signature)
@@ -169,7 +170,7 @@ export default function Profile() {
       setPreOrderTickets(newTotal);
       setTransactions(updatedTxs);
       
-      toast.success(`Pre-ordered ${tickets} tickets (2× bonus)`, {
+      toast.success(`Purchased ${tickets} tickets → Received ${ticketsReceived} tickets!`, {
         description: `Transaction confirmed! View on Solscan`,
         action: {
           label: 'View',
@@ -313,7 +314,7 @@ export default function Profile() {
                 </div>
                 <p className="text-sm text-muted-foreground mb-1">Pre-Orders</p>
                 <p className="text-2xl font-bold text-foreground font-orbitron">
-                  {preOrderTickets}<span className="text-lg text-muted-foreground">/250</span>
+                  {preOrderTickets}<span className="text-lg text-muted-foreground">/2500</span>
                 </p>
               </Card>
             </motion.div>
@@ -390,10 +391,10 @@ export default function Profile() {
                     {ticketAmount && parseInt(ticketAmount) > 0 && (
                       <div className="mt-2 space-y-1">
                         <p className="text-sm font-medium text-primary">
-                          Price: {(parseInt(ticketAmount) / 340).toFixed(4)} SOL
+                          Price: {(parseInt(ticketAmount) / 170).toFixed(4)} SOL (≈ ${((parseInt(ticketAmount) / 170) * 170).toFixed(2)} USD)
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          ≈ ${((parseInt(ticketAmount) / 340) * 170).toFixed(2)} USD
+                        <p className="text-xs text-accent font-medium">
+                          You'll receive {parseInt(ticketAmount) * 2} tickets (2× bonus)
                         </p>
                       </div>
                     )}
@@ -407,7 +408,7 @@ export default function Profile() {
                       <div>
                         <p className="font-medium text-primary mb-1">Double Ticket Bonus Active</p>
                         <p className="text-sm text-muted-foreground">
-                          Pre-order now and receive 2× tickets when the platform launches. Maximum 250 pre-order tickets per wallet.
+                          Pre-order now and receive 2× the tickets you purchase! Maximum 2500 pre-order tickets per wallet.
                         </p>
                       </div>
                     </div>
@@ -499,7 +500,7 @@ export default function Profile() {
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between py-2 border-t border-border/50">
                     <span className="text-muted-foreground">Your Pre-Orders</span>
-                    <span className="font-bold text-primary">{preOrderTickets}/250</span>
+                    <span className="font-bold text-primary">{preOrderTickets}/2500</span>
                   </div>
                   <div className="flex items-center justify-between py-2 border-t border-border/50">
                     <span className="text-muted-foreground">Bonus Multiplier</span>

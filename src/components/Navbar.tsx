@@ -65,8 +65,8 @@ export function Navbar() {
             SOLLUCKY
           </div>
           {isTestMode && (
-            <Badge variant="outline" className="bg-yellow-500/20 text-yellow-500 border-yellow-500 text-xs">
-              DEVNET
+            <Badge variant="outline" className="bg-green-500/20 text-green-500 border-green-500 text-xs">
+              MAINNET
             </Badge>
           )}
         </Link>

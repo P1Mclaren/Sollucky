@@ -50,9 +50,9 @@ serve(async (req) => {
       .select('*')
       .eq('draw_id', drawId);
 
-    // If no tickets, create test tickets for devnet testing
+    // If no tickets, create test tickets for testing
     if (!tickets || tickets.length === 0) {
-      console.log('⚠️  No tickets found. Creating test tickets for devnet testing...');
+      console.log('⚠️  No tickets found. Creating test tickets for testing...');
       
       const ticketCount = draw.lottery_type === 'monthly' ? 150 : 
                           draw.lottery_type === 'weekly' ? 50 : 10;
@@ -202,8 +202,8 @@ serve(async (req) => {
 
     console.log('✅ Winners saved and draw marked as completed');
 
-    // 6. SEND ACTUAL SOL ON DEVNET
-    console.log('💸 Processing payouts on devnet...');
+    // 6. SEND ACTUAL SOL ON MAINNET
+    console.log('💸 Processing payouts on mainnet...');
     
     // Get the correct private key for this lottery type
     const privateKeyEnvVar = draw.lottery_type === 'monthly' ? 'MONTHLY_LOTTERY_PRIVATE_KEY' :
@@ -218,8 +218,8 @@ serve(async (req) => {
 
     console.log(`🔑 Using wallet for ${draw.lottery_type} lottery`);
 
-    // Connect to devnet
-    const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+    // Connect to mainnet
+    const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
     const fromKeypair = Keypair.fromSecretKey(bs58.decode(privateKeyStr));
     
     console.log(`   From: ${fromKeypair.publicKey.toString()}`);

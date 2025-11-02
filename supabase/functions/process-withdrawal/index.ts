@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 const MINIMUM_WITHDRAWAL_LAMPORTS = 50000000; // ~$10 worth of SOL (0.05 SOL at ~$200/SOL)
-const SOLANA_NETWORK = 'https://api.devnet.solana.com';
+const SOLANA_NETWORK = 'https://api.mainnet-beta.solana.com';
 
 serve(async (req) => {
   console.log('=== PROCESS-WITHDRAWAL FUNCTION STARTED ===');

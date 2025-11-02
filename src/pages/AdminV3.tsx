@@ -200,8 +200,8 @@ export default function AdminV3() {
       toast({
         title: pendingTestModeState ? 'Test Mode Enabled' : 'Test Mode Disabled',
         description: pendingTestModeState
-          ? 'All operations now use DEVNET'
-          : 'Switched back to production',
+          ? 'Test mode enabled - uses test data namespace'
+          : 'Test mode disabled - production data',
       });
     } catch (error) {
       console.error('Error toggling test mode:', error);
@@ -257,7 +257,7 @@ export default function AdminV3() {
 
       toast({
         title: 'Starting Draw...',
-        description: `Drawing winners for ${lotteryType} lottery on devnet`,
+        description: `Drawing winners for ${lotteryType} lottery on mainnet`,
       });
 
       console.log(`🎲 Calling draw-winners for ${lotteryType} (${draw.id})`);
@@ -280,7 +280,7 @@ export default function AdminV3() {
 
       toast({
         title: 'Draw Complete!',
-        description: `${data.total_winners} winners selected. ${data.successful_payouts} payouts successful on devnet.`,
+        description: `${data.total_winners} winners selected. ${data.successful_payouts} payouts successful on mainnet.`,
       });
 
     } catch (error) {
@@ -415,7 +415,7 @@ export default function AdminV3() {
                 Global Test Mode
               </span>
               <Badge variant={isTestMode ? 'default' : 'outline'}>
-                {isTestMode ? 'DEVNET' : 'PRODUCTION'}
+                {isTestMode ? 'TEST DATA' : 'PRODUCTION'}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -424,7 +424,7 @@ export default function AdminV3() {
               <div className="space-y-1">
                 <p className="font-medium">Test Mode Switch</p>
                 <p className="text-xs text-muted-foreground">
-                  Toggle between production and devnet environments
+                  Toggle between production and test data environments (always mainnet)
                 </p>
               </div>
               <Switch
@@ -437,7 +437,7 @@ export default function AdminV3() {
             {isTestMode && (
               <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                 <p className="text-xs text-yellow-200">
-                  ⚠️ Test mode is active. All operations use DEVNET and test data namespace.
+                  ⚠️ Test mode is active. All operations use MAINNET with test data namespace.
                 </p>
               </div>
             )}
@@ -704,7 +704,7 @@ export default function AdminV3() {
             <AlertDialogDescription>
               {pendingTestModeState ? (
                 <>
-                  You are switching to <strong>DEVNET</strong>. No real funds will move.
+                  You are switching to <strong>TEST MODE</strong> on mainnet with test data namespace.
                   Production schedules are unaffected. All operations will use test data.
                 </>
               ) : (

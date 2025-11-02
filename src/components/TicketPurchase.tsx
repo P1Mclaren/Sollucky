@@ -79,9 +79,9 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
     let signature: string | undefined;
 
     try {
-      // Create Solana connection
-      const network = isTestMode ? 'https://api.devnet.solana.com' : 'https://api.mainnet-beta.solana.com';
-      console.log('🌐 Connecting to network:', network);
+      // Create Solana connection - MAINNET ONLY
+      const network = 'https://api.mainnet-beta.solana.com';
+      console.log('🌐 Connecting to mainnet:', network);
       const connection = new Connection(network, 'confirmed');
 
       // Create transaction
@@ -255,7 +255,7 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
 
         {txSignature && (
           <a
-            href={`https://solscan.io/tx/${txSignature}${isTestMode ? '?cluster=devnet' : ''}`}
+            href={`https://solscan.io/tx/${txSignature}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 text-xs text-primary hover:underline"

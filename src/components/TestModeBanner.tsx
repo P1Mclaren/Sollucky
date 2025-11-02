@@ -20,7 +20,7 @@ export function TestModeBanner() {
         >
           <AlertTriangle className="w-5 h-5" />
         </motion.div>
-        <span>TEST MODE ACTIVE - DEVNET ONLY - NO REAL FUNDS</span>
+        <span>TEST MODE ACTIVE - MAINNET WITH TEST DATA NAMESPACE</span>
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}

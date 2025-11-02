@@ -12,20 +12,17 @@ export interface NetworkConfig {
 }
 
 /**
- * Get network configuration based on test mode
- * CRITICAL: Prevents mixing mainnet/devnet keys
+ * Get network configuration - ALWAYS MAINNET
+ * Test mode is disabled for production
  */
 export function getNetworkConfig(isTestMode: boolean): NetworkConfig {
-  const network: SolanaNetwork = isTestMode ? 'devnet' : 'mainnet-beta';
-  
-  const rpcEndpoint = isTestMode
-    ? 'https://api.devnet.solana.com'
-    : 'https://api.mainnet-beta.solana.com';
+  const network: SolanaNetwork = 'mainnet-beta';
+  const rpcEndpoint = 'https://api.mainnet-beta.solana.com';
 
   return {
     rpcEndpoint,
     network,
-    isTestMode
+    isTestMode: false // Always false - mainnet only
   };
 }
 

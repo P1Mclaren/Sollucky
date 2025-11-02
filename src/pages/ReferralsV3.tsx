@@ -44,6 +44,7 @@ const ReferralsV3 = () => {
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
   const [withdrawing, setWithdrawing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [solPrice, setSolPrice] = useState(0);
 
   useEffect(() => {
     if (!publicKey) {
@@ -60,8 +61,21 @@ const ReferralsV3 = () => {
       loadReferralCode(),
       loadReferrals(),
       loadEarnings(),
-      loadWithdrawalHistory()
+      loadWithdrawalHistory(),
+      loadSolPrice()
     ]);
+  };
+
+  const loadSolPrice = async () => {
+    const { data, error } = await supabase
+      .from("sol_price_cache")
+      .select("price_usd")
+      .limit(1)
+      .maybeSingle();
+
+    if (!error && data) {
+      setSolPrice(Number(data.price_usd));
+    }
   };
 
   const loadReferralCode = async () => {
@@ -295,7 +309,9 @@ const ReferralsV3 = () => {
                 <div className="text-3xl font-orbitron font-bold text-primary">
                   {(totalEarnedLamports / LAMPORTS_PER_SOL).toFixed(4)}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">SOL</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  SOL {solPrice > 0 && `≈ $${((totalEarnedLamports / LAMPORTS_PER_SOL) * solPrice).toFixed(2)}`}
+                </div>
               </CardContent>
             </Card>
 
@@ -310,7 +326,9 @@ const ReferralsV3 = () => {
                 <div className="text-3xl font-orbitron font-bold text-green-500">
                   {(pendingLamports / LAMPORTS_PER_SOL).toFixed(4)}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">SOL</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  SOL {solPrice > 0 && `≈ $${((pendingLamports / LAMPORTS_PER_SOL) * solPrice).toFixed(2)}`}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -375,9 +393,16 @@ const ReferralsV3 = () => {
                   <div className="bg-background/50 rounded-lg p-4 space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Available Balance:</span>
-                      <span className="text-xl font-orbitron font-bold text-green-500">
-                        {(pendingLamports / LAMPORTS_PER_SOL).toFixed(4)} SOL
-                      </span>
+                      <div className="text-right">
+                        <div className="text-xl font-orbitron font-bold text-green-500">
+                          {(pendingLamports / LAMPORTS_PER_SOL).toFixed(4)} SOL
+                        </div>
+                        {solPrice > 0 && (
+                          <div className="text-sm text-muted-foreground">
+                            ≈ ${((pendingLamports / LAMPORTS_PER_SOL) * solPrice).toFixed(2)} USD
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Minimum Withdrawal:</span>

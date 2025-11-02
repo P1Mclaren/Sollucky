@@ -9,7 +9,7 @@ import { FAQ } from '@/components/FAQ';
 import { LotteryCountdown } from '@/components/LotteryCountdown';
 
 export default function Landing() {
-  const launchDate = new Date('2025-01-13T18:00:00+01:00');
+  const launchDate = new Date('2025-11-15T18:00:00+01:00');
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">

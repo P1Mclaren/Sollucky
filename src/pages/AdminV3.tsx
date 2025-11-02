@@ -110,10 +110,24 @@ export default function AdminV3() {
     if (!publicKey) return;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please reconnect your wallet to perform admin actions.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('toggle-test-mode', {
         body: {
           isEnabled: pendingTestModeState,
         },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
@@ -131,7 +145,7 @@ export default function AdminV3() {
       console.error('Error toggling test mode:', error);
       toast({
         title: 'Error',
-        description: 'Failed to toggle test mode',
+        description: error instanceof Error ? error.message : 'Failed to toggle test mode',
         variant: 'destructive',
       });
     } finally {
@@ -143,12 +157,26 @@ export default function AdminV3() {
     if (!publicKey) return;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please reconnect your wallet to perform admin actions.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { error } = await supabase.functions.invoke('control-test-lottery', {
         body: {
           lotteryType,
           action: 'start',
           durationMinutes: testDuration,
         },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
@@ -163,7 +191,7 @@ export default function AdminV3() {
       console.error('Error starting test:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to start test',
+        description: error instanceof Error ? error.message : 'Failed to start test',
         variant: 'destructive',
       });
     }
@@ -173,11 +201,25 @@ export default function AdminV3() {
     if (!publicKey) return;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please reconnect your wallet to perform admin actions.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { error } = await supabase.functions.invoke('control-test-lottery', {
         body: {
           lotteryType,
           action: 'stop',
         },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
@@ -192,7 +234,7 @@ export default function AdminV3() {
       console.error('Error stopping test:', error);
       toast({
         title: 'Error',
-        description: 'Failed to stop test',
+        description: error instanceof Error ? error.message : 'Failed to stop test',
         variant: 'destructive',
       });
     }
@@ -206,8 +248,22 @@ export default function AdminV3() {
     }
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please reconnect your wallet to perform admin actions.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { error } = await supabase.functions.invoke('reset-test-data', {
         body: {},
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
@@ -222,7 +278,7 @@ export default function AdminV3() {
       console.error('Error resetting test data:', error);
       toast({
         title: 'Error',
-        description: 'Failed to reset test data',
+        description: error instanceof Error ? error.message : 'Failed to reset test data',
         variant: 'destructive',
       });
     }
@@ -236,8 +292,22 @@ export default function AdminV3() {
     }
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please reconnect your wallet to perform admin actions.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('initialize-draws', {
         body: {},
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;

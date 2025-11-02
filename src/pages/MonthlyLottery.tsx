@@ -6,8 +6,8 @@ import { Trophy, Gift, Users, Sparkles } from 'lucide-react';
 import { useSolPrice } from '@/hooks/useSolPrice';
 
 const MonthlyLottery = () => {
-  // Launch date: 13th January 2025 at 6 PM CET (18:00 CET)
-  const launchDate = new Date('2025-01-13T18:00:00+01:00');
+  // Launch date: 15th November 2025 at 6 PM CET (18:00 CET)
+  const launchDate = new Date('2025-11-15T18:00:00+01:00');
   const isPreOrder = new Date() < launchDate;
   
   const { solPrice } = useSolPrice();

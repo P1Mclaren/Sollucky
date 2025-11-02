@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Connection, PublicKey, Transaction, SystemProgram, Keypair, sendAndConfirmTransaction } from "https://esm.sh/@solana/web3.js@1.87.6";
+import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from "https://esm.sh/@solana/web3.js@1.87.6";
 import bs58 from "https://esm.sh/bs58@5.0.0";
 
 const corsHeaders = {
@@ -236,7 +236,13 @@ serve(async (req) => {
       try {
         const toPublicKey = new PublicKey(winner.wallet_address);
         
-        const transaction = new Transaction().add(
+        // Get recent blockhash
+        const { blockhash } = await connection.getLatestBlockhash('finalized');
+        
+        const transaction = new Transaction({
+          recentBlockhash: blockhash,
+          feePayer: fromKeypair.publicKey,
+        }).add(
           SystemProgram.transfer({
             fromPubkey: fromKeypair.publicKey,
             toPubkey: toPublicKey,
@@ -244,14 +250,16 @@ serve(async (req) => {
           })
         );
 
+        // Sign the transaction
+        transaction.sign(fromKeypair);
+
         console.log(`   Sending ${winner.prize_lamports} lamports to ${winner.wallet_address.slice(0, 8)}...`);
         
-        const signature = await sendAndConfirmTransaction(
-          connection,
-          transaction,
-          [fromKeypair],
-          { commitment: 'confirmed' }
-        );
+        // Send transaction without waiting for confirmation (websockets don't work in edge functions)
+        const signature = await connection.sendRawTransaction(transaction.serialize(), {
+          skipPreflight: false,
+          preflightCommitment: 'finalized',
+        });
 
         // Update winner record with transaction signature
         await supabase
@@ -263,11 +271,11 @@ serve(async (req) => {
           .eq('draw_id', drawId)
           .eq('wallet_address', winner.wallet_address);
 
-        console.log(`   ✅ Paid! Signature: ${signature}`);
+        console.log(`   ✅ Sent! Signature: ${signature}`);
         successfulPayouts++;
 
         // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
       } catch (error) {
         console.error(`   ❌ Failed to pay ${winner.wallet_address}:`, error);

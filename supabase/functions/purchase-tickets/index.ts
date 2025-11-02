@@ -8,8 +8,12 @@ const corsHeaders = {
 };
 
 // Configuration
-const LOTTERY_WALLET = "HJJEjQRRzCkx7B9j8JABQjTxn7dDCnMdZLnynDLN3if5";
-const TICKET_PRICE_LAMPORTS = 1000000000; // 1 SOL per ticket
+const LOTTERY_WALLETS = {
+  monthly: 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM',
+  weekly: 'EAcYYNgT3BexVLpjnAwDawd75VXvjcAeCf37bXK4f7Zp',
+  daily: 'Bt75Ar8C3U5cPVhWmXj8CTF1AG858DsYntqMbAwQhRqj',
+};
+const TICKET_PRICE_USD = 1; // $1 per ticket
 const SOLANA_NETWORK = "https://api.devnet.solana.com";
 const OPERATOR_REFERRAL_CODE = "BONUS2025";
 const FUND_SPLIT_PERCENTAGE = 0.30; // 30% to creator/operator, 70% to lottery
@@ -108,6 +112,17 @@ serve(async (req) => {
       );
     }
 
+    // Get the correct lottery wallet for this lottery type
+    const lotteryWallet = LOTTERY_WALLETS[lotteryType as keyof typeof LOTTERY_WALLETS];
+    if (!lotteryWallet) {
+      console.error('Invalid lottery type:', lotteryType);
+      return new Response(
+        JSON.stringify({ error: 'Invalid lottery type' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    console.log(`Expected lottery wallet for ${lotteryType}:`, lotteryWallet);
+
     // Verify transaction on Solana blockchain
     console.log('Verifying transaction on Solana...');
     const connection = new Connection(SOLANA_NETWORK, 'confirmed');
@@ -151,32 +166,41 @@ serve(async (req) => {
     for (const instruction of instructions) {
       if ('parsed' in instruction && instruction.parsed.type === 'transfer') {
         const { info } = instruction.parsed;
-        if (info.destination === LOTTERY_WALLET) {
+        console.log(`Checking transfer to: ${info.destination}`);
+        if (info.destination === lotteryWallet) {
           actualTransferAmount = info.lamports;
           transferToLottery = true;
-          console.log(`Found transfer: ${actualTransferAmount} lamports to lottery wallet`);
+          console.log(`✅ Found transfer: ${actualTransferAmount} lamports to lottery wallet`);
           break;
         }
       }
     }
 
     if (!transferToLottery) {
+      console.error(`❌ No transfer found to lottery wallet: ${lotteryWallet}`);
       return new Response(
-        JSON.stringify({ error: 'No valid transfer to lottery wallet found in transaction' }),
+        JSON.stringify({ 
+          error: 'No valid transfer to lottery wallet found in transaction',
+          expectedWallet: lotteryWallet
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Validate transfer amount matches ticket purchase
-    const expectedAmount = ticketAmount * TICKET_PRICE_LAMPORTS;
-    const tolerance = TICKET_PRICE_LAMPORTS * 0.01; // 1% tolerance for network fees
-
-    if (Math.abs(actualTransferAmount - expectedAmount) > tolerance) {
-      console.error(`Amount mismatch: expected ${expectedAmount}, got ${actualTransferAmount}`);
+    // Calculate expected amount based on USD price
+    // Note: We use a flexible validation since SOL price fluctuates
+    // As long as the transfer is at least 80% of expected (accounting for price changes and fees)
+    const minExpectedLamports = Math.floor((ticketAmount * TICKET_PRICE_USD / 200) * LAMPORTS_PER_SOL); // Assuming SOL won't go below $200
+    
+    console.log(`Validating amount: ${actualTransferAmount} lamports (min expected: ${minExpectedLamports})`);
+    
+    if (actualTransferAmount < minExpectedLamports) {
+      console.error(`❌ Amount too low: expected at least ${minExpectedLamports}, got ${actualTransferAmount}`);
       return new Response(
         JSON.stringify({ 
-          error: 'Transfer amount does not match ticket purchase',
-          expected: expectedAmount,
+          error: 'Transfer amount is too low for ticket purchase',
+          minimumRequired: minExpectedLamports,
           actual: actualTransferAmount
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

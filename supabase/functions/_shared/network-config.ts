@@ -70,21 +70,15 @@ export function getLotteryWalletConfig(
   const configs = {
     monthly: {
       privateKeyEnvVar: 'MONTHLY_LOTTERY_PRIVATE_KEY',
-      publicKey: network === 'mainnet-beta'
-        ? 'TgtoboRzo2uzz9yF7NsaCmJrC7uDt664TMgCDMxoLYvvSJgBmuiovzms3cLnctT8ws9N4R2sLE5W3w4rnQCtrws'
-        : 'TgtoboRzo2uzz9yF7NsaCmJrC7uDt664TMgCDMxoLYvvSJgBmuiovzms3cLnctT8ws9N4R2sLE5W3w4rnQCtrws'
+      publicKey: 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM'
     },
     weekly: {
       privateKeyEnvVar: 'WEEKLY_LOTTERY_PRIVATE_KEY',
-      publicKey: network === 'mainnet-beta'
-        ? '412KtEEM5PrTW2hubE3x3n7vTqkH6kQ4Wgp6FBTjjr1jiC9QvqdvKrZrr4cViawiNWx6Qpie6EmfP5irvRKo76Na'
-        : '412KtEEM5PrTW2hubE3x3n7vTqkH6kQ4Wgp6FBTjjr1jiC9QvqdvKrZrr4cViawiNWx6Qpie6EmfP5irvRKo76Na'
+      publicKey: 'EAcYYNgT3BexVLpjnAwDawd75VXvjcAeCf37bXK4f7Zp'
     },
     daily: {
       privateKeyEnvVar: 'DAILY_LOTTERY_PRIVATE_KEY',
-      publicKey: network === 'mainnet-beta'
-        ? '5E1Jdmn3WpLXy4wrG1b4zBv3dCxTis9tmSMZDLTeL5v6edb7SrRamRhGynouwPXBTC93Rtap6kDomr7cMezLAxq7'
-        : '5E1Jdmn3WpLXy4wrG1b4zBv3dCxTis9tmSMZDLTeL5v6edb7SrRamRhGynouwPXBTC93Rtap6kDomr7cMezLAxq7'
+      publicKey: 'Bt75Ar8C3U5cPVhWmXj8CTF1AG858DsYntqMbAwQhRqj'
     }
   };
 

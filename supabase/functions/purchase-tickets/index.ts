@@ -311,13 +311,24 @@ serve(async (req) => {
           console.log('Bonus tickets:', bonusTickets, 'Referrer earnings:', referrerEarningsLamports);
 
           // Update or create referral record
+          const { data: existingReferral } = await supabase
+            .from('referrals')
+            .select('tickets_purchased')
+            .eq('referrer_wallet', referrerWallet)
+            .eq('referred_wallet', walletAddress)
+            .maybeSingle();
+
+          const newTicketCount = existingReferral 
+            ? existingReferral.tickets_purchased + ticketAmount 
+            : ticketAmount;
+
           const { error: referralRecordError } = await supabase
             .from('referrals')
             .upsert({
               referrer_wallet: referrerWallet,
               referred_wallet: walletAddress,
               referral_code: referralCode.toUpperCase(),
-              tickets_purchased: ticketAmount
+              tickets_purchased: newTicketCount
             }, {
               onConflict: 'referrer_wallet,referred_wallet',
               ignoreDuplicates: false

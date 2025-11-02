@@ -11,21 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTestMode } from '@/contexts/TestModeContext';
-import { Play, Square, RotateCcw, Activity, Rocket } from 'lucide-react';
+import { Activity, Rocket, Zap, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const LAMPORTS_PER_SOL = 1000000000;
-
-interface TestLotteryRun {
-  id: string;
-  lottery_type: string;
-  status: string;
-  started_at: string | null;
-  stopped_at: string | null;
-  duration_minutes: number;
-}
 
 interface AuditLog {
   id: string;
@@ -66,11 +57,9 @@ export default function AdminV3() {
   const { isTestMode, refreshTestMode } = useTestMode();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [testRuns, setTestRuns] = useState<TestLotteryRun[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingTestModeState, setPendingTestModeState] = useState(false);
-  const [testDuration, setTestDuration] = useState(5);
   
   // Financial dashboard state
   const [fundSplits, setFundSplits] = useState<FundSplit[]>([]);
@@ -115,15 +104,6 @@ export default function AdminV3() {
 
   const fetchData = async () => {
     try {
-      // Fetch test lottery runs
-      const { data: runs, error: runsError } = await supabase
-        .from('test_lottery_runs')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (runsError) throw runsError;
-      setTestRuns(runs || []);
-
       // Fetch audit logs
       const { data: logs } = await supabase
         .from('audit_log')
@@ -235,7 +215,7 @@ export default function AdminV3() {
     }
   };
 
-  const handleStartTest = async (lotteryType: string) => {
+  const handleTestDraw = async (lotteryType: 'monthly' | 'weekly' | 'daily') => {
     if (!publicKey) return;
 
     try {
@@ -250,55 +230,32 @@ export default function AdminV3() {
         return;
       }
 
-      const { error } = await supabase.functions.invoke('control-test-lottery', {
-        body: {
-          lotteryType,
-          action: 'start',
-          durationMinutes: testDuration,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
+      // Get the active draw for this lottery type
+      const { data: draw, error: drawError } = await supabase
+        .from('lottery_draws')
+        .select('id')
+        .eq('lottery_type', lotteryType)
+        .in('status', ['pre-order', 'active'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (error) throw error;
-
-      await fetchData();
-
-      toast({
-        title: 'Test Started',
-        description: `${lotteryType} test lottery is now running`,
-      });
-    } catch (error) {
-      console.error('Error starting test:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to start test',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleStopTest = async (lotteryType: string) => {
-    if (!publicKey) return;
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
+      if (drawError || !draw) {
         toast({
-          title: 'Authentication Required',
-          description: 'Please reconnect your wallet to perform admin actions.',
+          title: 'No Active Draw',
+          description: `No active ${lotteryType} lottery draw found. Initialize draws first.`,
           variant: 'destructive',
         });
         return;
       }
 
-      const { error } = await supabase.functions.invoke('control-test-lottery', {
-        body: {
-          lotteryType,
-          action: 'stop',
-        },
+      toast({
+        title: 'Drawing Winners...',
+        description: `Testing automatic winner selection and payouts for ${lotteryType} lottery`,
+      });
+
+      const { data, error } = await supabase.functions.invoke('draw-winners', {
+        body: { drawId: draw.id },
         headers: {
           Authorization: `Bearer ${session.access_token}`
         }
@@ -309,14 +266,14 @@ export default function AdminV3() {
       await fetchData();
 
       toast({
-        title: 'Test Stopped',
-        description: `${lotteryType} test lottery has been stopped`,
+        title: 'Draw Completed!',
+        description: `${data.winners} winners selected and paid automatically. Check audit log for details.`,
       });
     } catch (error) {
-      console.error('Error stopping test:', error);
+      console.error('Error running test draw:', error);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to stop test',
+        description: error instanceof Error ? error.message : 'Failed to run test draw',
         variant: 'destructive',
       });
     }
@@ -410,31 +367,6 @@ export default function AdminV3() {
     }
   };
 
-  const getLotteryStatus = (lotteryType: string) => {
-    const run = testRuns.find(
-      (r) => r.lottery_type === lotteryType && r.status === 'RUNNING'
-    );
-    return run ? 'RUNNING' : 'IDLE';
-  };
-
-  const getTimeRemaining = (lotteryType: string) => {
-    const run = testRuns.find(
-      (r) => r.lottery_type === lotteryType && r.status === 'RUNNING'
-    );
-
-    if (!run || !run.started_at) return null;
-
-    const startTime = new Date(run.started_at).getTime();
-    const endTime = startTime + run.duration_minutes * 60 * 1000;
-    const now = Date.now();
-    const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
-
-    const minutes = Math.floor(remaining / 60);
-    const seconds = remaining % 60;
-
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -444,8 +376,6 @@ export default function AdminV3() {
   }
 
   if (!isAdmin) return null;
-
-  const lotteryTypes = ['monthly', 'weekly', 'daily'];
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -500,101 +430,48 @@ export default function AdminV3() {
           </CardContent>
         </Card>
 
-        {/* Per-Lottery Controls */}
-        <div className="grid md:grid-cols-3 gap-4 mb-6">
-          {lotteryTypes.map((type) => {
-            const status = getLotteryStatus(type);
-            const timeRemaining = getTimeRemaining(type);
+        {/* Test Draw Buttons */}
+        <Card className="mb-6 border-primary/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-primary" />
+              Test Lottery Draws & Payouts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Test the automatic winner selection and payout system. This will draw winners from existing tickets and automatically send SOL to their wallets.
+            </p>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Button
+                variant="default"
+                onClick={() => handleTestDraw('monthly')}
+                className="flex items-center gap-2"
+              >
+                <Trophy className="w-4 h-4" />
+                Test Monthly Draw
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => handleTestDraw('weekly')}
+                className="flex items-center gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                Test Weekly Draw
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => handleTestDraw('daily')}
+                className="flex items-center gap-2"
+              >
+                <Activity className="w-4 h-4" />
+                Test Daily Draw
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-            return (
-              <Card key={type} className="border-primary/20">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base capitalize flex items-center justify-between">
-                    {type} Lottery
-                    <Badge
-                      variant={status === 'RUNNING' ? 'default' : 'outline'}
-                      className={status === 'RUNNING' ? 'bg-green-500' : ''}
-                    >
-                      {status}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {status === 'RUNNING' && timeRemaining && (
-                    <div className="text-center py-2 bg-primary/10 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Time Remaining</p>
-                      <p className="text-xl font-mono font-bold text-primary">{timeRemaining}</p>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      className="flex-1"
-                      onClick={() => handleStartTest(type)}
-                      disabled={!isTestMode || status === 'RUNNING'}
-                    >
-                      <Play className="w-4 h-4 mr-1" />
-                      Start Test
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="flex-1"
-                      onClick={() => handleStopTest(type)}
-                      disabled={status !== 'RUNNING'}
-                    >
-                      <Square className="w-4 h-4 mr-1" />
-                      Stop
-                    </Button>
-                  </div>
-
-                  {!isTestMode && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      Enable test mode to run tests
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Test Duration Control */}
-        {isTestMode && (
-          <Card className="mb-6 border-primary/20">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Test Configuration</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-4">
-                <label className="text-sm">Test Duration (minutes):</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="60"
-                  value={testDuration}
-                  onChange={(e) => setTestDuration(parseInt(e.target.value) || 5)}
-                  className="w-20 px-3 py-1 bg-background border border-border rounded-md text-sm"
-                />
-              </div>
-              <div className="pt-2 border-t border-border space-y-2">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleResetTestData}
-                  className="w-full"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset All Test Data
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Production Controls */}
+        {/* Production Initialize */}
         {!isTestMode && (
           <Card className="mb-6 border-primary/20">
             <CardHeader className="pb-3">
@@ -820,11 +697,6 @@ export default function AdminV3() {
                 <>
                   You are switching to <strong>PRODUCTION</strong>. All operations will use
                   real funds and production data.
-                  {testRuns.some((r) => r.status === 'RUNNING') && (
-                    <span className="block mt-2 text-yellow-500">
-                      ⚠️ Active test runs will be stopped.
-                    </span>
-                  )}
                 </>
               )}
             </AlertDialogDescription>

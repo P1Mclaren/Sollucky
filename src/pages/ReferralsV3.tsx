@@ -299,13 +299,22 @@ const ReferralsV3 = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Withdrawal error:", error);
+        toast.error(error.message || "Failed to process withdrawal");
+        throw error;
+      }
 
-      toast.success("Withdrawal request submitted successfully!");
+      if (data) {
+        toast.success("Withdrawal completed successfully! SOL sent to your wallet.");
+      }
+      
+      // Always reload data after withdrawal attempt
       await loadAllData();
     } catch (error: any) {
       console.error("Withdrawal error:", error);
-      toast.error(error.message || "Failed to process withdrawal");
+      // Still reload data even on error to show updated state
+      await loadAllData();
     } finally {
       setWithdrawing(false);
     }

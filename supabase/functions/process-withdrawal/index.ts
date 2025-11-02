@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Connection, PublicKey, Transaction, SystemProgram, Keypair, sendAndConfirmTransaction } from "https://esm.sh/@solana/web3.js@1.87.6";
+import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from "https://esm.sh/@solana/web3.js@1.87.6";
 import nacl from "https://esm.sh/tweetnacl@1.0.3";
 import bs58 from "https://esm.sh/bs58@5.0.0";
 
@@ -163,8 +163,15 @@ serve(async (req) => {
     
     try {
       console.log('📝 Creating Solana transaction...');
-      // Create and send transaction
-      const transaction = new Transaction().add(
+      // Get recent blockhash
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      
+      // Create transaction
+      const transaction = new Transaction({
+        feePayer: fromKeypair.publicKey,
+        blockhash,
+        lastValidBlockHeight,
+      }).add(
         SystemProgram.transfer({
           fromPubkey: fromKeypair.publicKey,
           toPubkey: toPublicKey,
@@ -172,15 +179,28 @@ serve(async (req) => {
         })
       );
 
-      console.log('✍️ Signing and sending transaction...');
-      txSignature = await sendAndConfirmTransaction(
-        connection,
-        transaction,
-        [fromKeypair]
-      );
+      console.log('✍️ Signing transaction...');
+      transaction.sign(fromKeypair);
 
-      console.log(`✅ Transaction successful!`);
+      console.log('📤 Sending transaction...');
+      txSignature = await connection.sendRawTransaction(transaction.serialize());
+
+      console.log(`✅ Transaction sent!`);
       console.log(`   Signature: ${txSignature}`);
+      console.log('⏳ Confirming transaction...');
+
+      // Wait for confirmation
+      const confirmation = await connection.confirmTransaction({
+        signature: txSignature,
+        blockhash,
+        lastValidBlockHeight,
+      });
+
+      if (confirmation.value.err) {
+        throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
+      }
+
+      console.log(`✅ Transaction confirmed!`);
     } catch (txError) {
       console.error('❌ Transaction failed:', txError);
       console.error('   Error details:', txError instanceof Error ? txError.message : 'Unknown error');

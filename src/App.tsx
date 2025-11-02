@@ -12,6 +12,10 @@ import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import HowItWorks from "./pages/HowItWorks";
+import MonthlyLottery from "./pages/MonthlyLottery";
+import WeeklyLottery from "./pages/WeeklyLottery";
+import DailyLottery from "./pages/DailyLottery";
+import WallOfFame from "./pages/WallOfFame";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +31,10 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/referrals" element={<Referrals />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/monthly" element={<MonthlyLottery />} />
+            <Route path="/weekly" element={<WeeklyLottery />} />
+            <Route path="/daily" element={<DailyLottery />} />
+            <Route path="/wall-of-fame" element={<WallOfFame />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/how-it-works" element={<HowItWorks />} />

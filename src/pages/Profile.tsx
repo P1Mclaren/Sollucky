@@ -1,35 +1,30 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { LAMPORTS_PER_SOL, Transaction, SystemProgram, PublicKey } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ParticleBackground } from '@/components/ParticleBackground';
-import { Wallet, TrendingUp, Ticket, Gift, User, Copy, CheckCircle2, ArrowUpRight } from 'lucide-react';
+import { Wallet, Ticket, Trophy, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-
-const LOTTERY_WALLET = 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export default function Profile() {
-  const { publicKey, connected, sendTransaction } = useWallet();
+  const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
   const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
   const [balance, setBalance] = useState<number>(0);
-  
-  const [ticketAmount, setTicketAmount] = useState('');
-  const [referralCode, setReferralCode] = useState('');
-  const [preOrderTickets, setPreOrderTickets] = useState(0);
-  const [bonusTickets, setBonusTickets] = useState(0);
-  const [transactions, setTransactions] = useState<Array<{date: string, type: string, amount: string, status: string}>>([]);
-  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
+  const [tickets, setTickets] = useState<{
+    monthly: number;
+    weekly: number;
+    daily: number;
+  }>({ monthly: 0, weekly: 0, daily: 0 });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Redirect if wallet not connected
   useEffect(() => {
     if (!connected) {
       navigate('/');
@@ -37,222 +32,49 @@ export default function Profile() {
     }
   }, [connected, navigate]);
 
-  // Load wallet-specific data from database
   useEffect(() => {
-    const loadTickets = async () => {
+    const loadData = async () => {
       if (!publicKey) return;
       
-      setIsLoadingTickets(true);
+      setIsLoading(true);
       try {
-        const walletAddress = publicKey.toString();
-        const { data, error } = await supabase
-          .from('tickets')
-          .select('*')
-          .eq('wallet_address', walletAddress)
-          .maybeSingle();
+        // Fetch balance
+        const bal = await connection.getBalance(publicKey);
+        setBalance(bal / LAMPORTS_PER_SOL);
 
-        if (!error && data) {
-          setPreOrderTickets(data.ticket_count);
-          setBonusTickets(data.bonus_tickets);
+        // Fetch tickets from database
+        const walletAddress = publicKey.toString();
+        const { data: draws } = await supabase
+          .from('lottery_draws')
+          .select('id, lottery_type, status')
+          .in('status', ['pre-order', 'active']);
+
+        if (draws) {
+          const ticketCounts = { monthly: 0, weekly: 0, daily: 0 };
+          
+          for (const draw of draws) {
+            const { data: userTickets } = await supabase
+              .from('lottery_tickets')
+              .select('id')
+              .eq('draw_id', draw.id)
+              .eq('wallet_address', walletAddress);
+
+            if (userTickets) {
+              ticketCounts[draw.lottery_type as keyof typeof ticketCounts] += userTickets.length;
+            }
+          }
+
+          setTickets(ticketCounts);
         }
-        
-        // Still load transactions from localStorage for now
-        const storedTxs = localStorage.getItem(`sollucky_txs_${walletAddress}`);
-        if (storedTxs) setTransactions(JSON.parse(storedTxs));
       } catch (error) {
-        console.error('Error loading tickets:', error);
+        console.error('Error loading profile data:', error);
       } finally {
-        setIsLoadingTickets(false);
+        setIsLoading(false);
       }
     };
 
-    loadTickets();
-  }, [publicKey]);
-
-  useEffect(() => {
-    if (connected && publicKey) {
-      fetchBalance();
-    }
-  }, [connected, publicKey]);
-
-  const fetchBalance = async () => {
-    if (!publicKey) return;
-    try {
-      const bal = await connection.getBalance(publicKey);
-      setBalance(bal / LAMPORTS_PER_SOL);
-    } catch (error) {
-      console.error('Error fetching balance:', error);
-    }
-  };
-
-
-  const handlePreOrder = async () => {
-    if (!connected || !publicKey || !sendTransaction) {
-      toast.error('Please connect your wallet first');
-      return;
-    }
-
-    const tickets = parseInt(ticketAmount);
-    if (!tickets || tickets <= 0) {
-      toast.error('Please enter the number of tickets');
-      return;
-    }
-
-    // Validate referral code is entered
-    const trimmedCode = referralCode.trim().toUpperCase();
-    if (!trimmedCode) {
-      toast.error('Referral code required to receive bonus tickets');
-      return;
-    }
-
-    // Check if referral code exists
-    const { data: codeData, error: codeError } = await supabase
-      .from('referral_codes')
-      .select('wallet_address')
-      .eq('code', trimmedCode)
-      .maybeSingle();
-
-    if (codeError || !codeData) {
-      toast.error('Invalid referral code');
-      return;
-    }
-
-    const referrerWallet = codeData.wallet_address;
-    const currentWallet = publicKey.toString();
-
-    // Can't use own referral code
-    if (referrerWallet === currentWallet) {
-      toast.error("You can't use your own referral code");
-      return;
-    }
-
-    // Calculate tickets purchased and bonus received
-    const ticketsPurchased = tickets;
-    const bonusReceived = tickets; // Equal to purchased for 2x bonus
-    const newPreOrderTotal = preOrderTickets + ticketsPurchased;
-    const newBonusTotal = bonusTickets + bonusReceived;
-    
-    if (newPreOrderTotal > 2500) {
-      toast.error('Maximum 2500 pre-order tickets allowed');
-      return;
-    }
-
-    try {
-      // Calculate SOL needed (normal price: $1 per ticket at ~$170/SOL)
-      // Base rate: 170 tickets per SOL, so 1 ticket = 1/170 SOL
-      const solNeeded = tickets / 170;
-      const lamports = Math.floor(solNeeded * LAMPORTS_PER_SOL);
-      
-      // Estimate transaction fee (5000 lamports per signature)
-      const estimatedFee = 5000;
-      const totalRequired = lamports + estimatedFee;
-      
-      // Check if user has enough balance
-      const currentBalance = await connection.getBalance(publicKey);
-      if (currentBalance < totalRequired) {
-        toast.error('Insufficient balance', {
-          description: `You need ${(totalRequired / LAMPORTS_PER_SOL).toFixed(4)} SOL (including fees)`,
-        });
-        return;
-      }
-
-      toast.info('Processing transaction...', {
-        description: 'Please confirm in your wallet',
-      });
-
-      // Create transaction with single transfer to lottery wallet
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: new PublicKey(LOTTERY_WALLET),
-          lamports: lamports,
-        })
-      );
-
-      // Get latest blockhash
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      // Send and confirm transaction
-      const signature = await sendTransaction(transaction, connection);
-      
-      toast.info('Confirming transaction...', {
-        description: 'This may take a few seconds',
-      });
-
-      // Wait for confirmation
-      await connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight,
-      });
-
-      // Call edge function to record purchase securely
-      const walletAddress = publicKey.toString();
-      const { data, error } = await supabase.functions.invoke('purchase-tickets', {
-        body: {
-          walletAddress,
-          ticketAmount: ticketsPurchased,
-          referralCode: trimmedCode || null,
-          transactionSignature: signature
-        }
-      });
-
-      if (error) {
-        throw new Error(error.message || 'Failed to record purchase');
-      }
-
-      // Update local state with response from edge function
-      setPreOrderTickets(data.ticketCount);
-      setBonusTickets(data.bonusTickets);
-      
-      // Update transaction history locally
-      const newTransaction = {
-        date: new Date().toISOString().split('T')[0],
-        type: 'Pre-Order',
-        amount: `-${solNeeded.toFixed(4)} SOL`,
-        status: 'Confirmed'
-      };
-      
-      const updatedTxs = [newTransaction, ...transactions];
-      localStorage.setItem(`sollucky_txs_${walletAddress}`, JSON.stringify(updatedTxs));
-      setTransactions(updatedTxs);
-      
-      toast.success(`Purchased ${ticketsPurchased} tickets + ${bonusReceived} bonus!`, {
-        description: `Transaction confirmed! View on Solscan`,
-        action: {
-          label: 'View',
-          onClick: () => window.open(`https://solscan.io/tx/${signature}?cluster=devnet`, '_blank'),
-        },
-      });
-      
-      setTicketAmount('');
-      fetchBalance(); // Refresh balance
-      
-    } catch (error: any) {
-      console.error('Transaction error:', error);
-      
-      if (error.message?.includes('User rejected')) {
-        toast.error('Transaction cancelled', {
-          description: 'You rejected the transaction',
-        });
-      } else {
-        toast.error('Transaction failed', {
-          description: error.message || 'Please try again',
-        });
-      }
-    }
-  };
-
-  const copyAddress = () => {
-    if (publicKey) {
-      navigator.clipboard.writeText(publicKey.toString());
-      setCopied(true);
-      toast.success('Address copied to clipboard');
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
+    loadData();
+  }, [publicKey, connection]);
 
   if (!connected || !publicKey) {
     return null;
@@ -263,352 +85,125 @@ export default function Profile() {
       <ParticleBackground />
       <Navbar />
 
-      <div className="container mx-auto px-4 pt-32 pb-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-7xl mx-auto"
-        >
-          {/* Profile Header */}
-          <div className="relative mb-12">
-            <Card className="relative bg-card/80 backdrop-blur-sm border-primary/30 p-8 md:p-10">
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                {/* Avatar */}
-                <div className="relative">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <User className="w-12 h-12 md:w-16 md:h-16 text-white" />
-                  </div>
-                </div>
+      <main className="relative pt-24 pb-20 px-4 min-h-screen">
+        <div className="container mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="font-orbitron text-4xl md:text-5xl font-bold mb-8 text-center">
+              Your Profile
+            </h1>
 
-                {/* Profile Info */}
-                <div className="flex-1 text-center md:text-left">
-                  <h1 className="font-orbitron text-3xl md:text-5xl font-bold mb-4 text-glow-purple">
-                    My Profile
-                  </h1>
-                  <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
-                    <div className="px-4 py-2 rounded-xl bg-background/80 border border-primary/30 backdrop-blur-sm">
-                      <p className="text-xs text-muted-foreground mb-1">Wallet Address</p>
-                      <div className="flex items-center gap-2">
-                        <code className="text-primary font-mono text-sm">
-                          {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
-                        </code>
-                        <button
-                          onClick={copyAddress}
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {copied ? (
-                            <CheckCircle2 className="w-4 h-4 text-accent" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground">
-                    Pre-launch member • Earning 2× bonus tickets
+            {/* Wallet Info Card */}
+            <Card className="p-6 mb-8 bg-card/80 backdrop-blur-sm border-primary/30">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Wallet className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Connected Wallet</p>
+                  <p className="font-mono text-lg">
+                    {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
                   </p>
                 </div>
-
-                {/* View on Solscan */}
-                <Button
-                  variant="outline"
-                  className="border-primary/50 text-primary hover:bg-primary/10"
-                  onClick={() => window.open(`https://solscan.io/account/${publicKey.toString()}`, '_blank')}
-                >
-                  View on Solscan
-                  <ArrowUpRight className="w-4 h-4 ml-2" />
-                </Button>
+              </div>
+              
+              <div className="pt-4 border-t border-primary/20">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Balance</span>
+                  <span className="font-orbitron text-2xl font-bold text-primary">
+                    {balance.toFixed(4)} SOL
+                  </span>
+                </div>
               </div>
             </Card>
-          </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Wallet className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/30">
-                    <span className="text-xs font-medium text-primary">SOL</span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">Balance</p>
-                <p className="text-2xl font-bold text-foreground font-orbitron">
-                  {balance.toFixed(4)}
-                </p>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Ticket className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/30">
-                    <span className="text-xs font-medium text-primary">Paid</span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">Pre-Order Tickets</p>
-                <p className="text-2xl font-bold text-foreground font-orbitron">
-                  {isLoadingTickets ? '...' : preOrderTickets}<span className="text-lg text-muted-foreground">/2500</span>
-                </p>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-primary" />
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">Transactions</p>
-                <p className="text-2xl font-bold text-foreground font-orbitron">
-                  {transactions.length}
-                </p>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <Card className="bg-card border-primary/30 p-6 hover:border-primary/50 transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Gift className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="px-3 py-1 rounded-full bg-accent/20 border border-accent/30">
-                    <span className="text-xs font-medium text-accent">Free</span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">Bonus Tickets</p>
-                <p className="text-2xl font-bold text-accent font-orbitron">
-                  {isLoadingTickets ? '...' : bonusTickets}
-                </p>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Pre-Order Section - Takes 2 columns */}
-            <div className="lg:col-span-2 space-y-8">
-              <Card className="bg-card border-primary/30 p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Gift className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="font-orbitron text-2xl font-bold">Pre-Order Tickets</h2>
-                    <p className="text-sm text-muted-foreground">Get 2× bonus for Monthly lottery</p>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Referral Code (Required)</label>
-                    <Input
-                      type="text"
-                      placeholder="Enter referral code"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                      className="bg-background border-border focus:border-primary text-lg h-14"
-                      maxLength={20}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Don't have a code? Use <span className="text-primary font-semibold">BONUS2025</span>
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Number of Tickets</label>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={ticketAmount}
-                        onChange={(e) => setTicketAmount(e.target.value)}
-                        className="bg-background border-border focus:border-primary text-lg h-14 pr-24"
-                        min="1"
-                        step="1"
-                      />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                        Tickets
-                      </div>
+            {/* Tickets Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Link to="/monthly">
+                <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30 hover:border-primary/50 transition-all cursor-pointer group">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Ticket className="w-6 h-6 text-primary" />
                     </div>
-                    {ticketAmount && parseInt(ticketAmount) > 0 && (
-                      <div className="mt-2 space-y-1">
-                        <p className="text-sm font-medium text-primary">
-                          Price: {(parseInt(ticketAmount) / 170).toFixed(4)} SOL (≈ ${((parseInt(ticketAmount) / 170) * 170).toFixed(2)} USD)
-                        </p>
-                        <p className="text-xs text-accent font-medium">
-                          You'll receive {parseInt(ticketAmount) * 2} tickets (2× bonus)
-                        </p>
-                      </div>
-                    )}
+                    <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
+                  <h3 className="font-orbitron text-xl font-bold mb-2">Monthly Lottery</h3>
+                  <p className="text-3xl font-bold text-primary">{tickets.monthly}</p>
+                  <p className="text-sm text-muted-foreground">tickets owned</p>
+                </Card>
+              </Link>
 
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/30">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                        <Gift className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-primary mb-1">Double Ticket Bonus Active</p>
-                        <p className="text-sm text-muted-foreground">
-                          Pre-order now and receive 2× the tickets you purchase! Maximum 2500 pre-order tickets per wallet.
-                        </p>
-                      </div>
+              <Link to="/weekly">
+                <Card className="p-6 bg-card/80 backdrop-blur-sm border-accent/30 hover:border-accent/50 transition-all cursor-pointer group">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+                      <Ticket className="w-6 h-6 text-accent" />
                     </div>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
                   </div>
+                  <h3 className="font-orbitron text-xl font-bold mb-2">Weekly Lottery</h3>
+                  <p className="text-3xl font-bold text-accent">{tickets.weekly}</p>
+                  <p className="text-sm text-muted-foreground">tickets owned</p>
+                </Card>
+              </Link>
 
-                  <Button
-                    onClick={handlePreOrder}
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 w-full"
-                  >
-                    Pre-Order Now
+              <Link to="/daily">
+                <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30 hover:border-primary/50 transition-all cursor-pointer group">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Ticket className="w-6 h-6 text-primary" />
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <h3 className="font-orbitron text-xl font-bold mb-2">Daily Lottery</h3>
+                  <p className="text-3xl font-bold text-primary">{tickets.daily}</p>
+                  <p className="text-sm text-muted-foreground">tickets owned</p>
+                </Card>
+              </Link>
+            </div>
+
+            {/* Quick Actions */}
+            <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30 mb-8">
+              <h3 className="font-orbitron text-xl font-bold mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Link to="/monthly">
+                  <Button className="w-full bg-primary hover:bg-primary/90">
+                    Purchase Monthly Tickets
                   </Button>
-                </div>
-              </Card>
+                </Link>
+                <Link to="/referrals">
+                  <Button variant="outline" className="w-full border-primary/30">
+                    View Referral Earnings
+                  </Button>
+                </Link>
+              </div>
+            </Card>
 
-              {/* Transaction History */}
-              <Card className="bg-card border-border/50 p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-foreground" />
+            {/* Winners Link */}
+            <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Trophy className="w-6 h-6 text-primary" />
                   </div>
-                  <h2 className="font-orbitron text-2xl font-bold">Recent Activity</h2>
-                </div>
-
-                <div className="space-y-3">
-                  {transactions.length > 0 ? (
-                    transactions.map((tx, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="flex items-center justify-between p-4 rounded-xl bg-background/50 border border-border hover:border-primary/30 transition-all"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                            <Ticket className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{tx.type}</p>
-                            <p className="text-xs text-muted-foreground">{tx.date}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold font-mono">{tx.amount}</p>
-                          <p className="text-xs text-primary">{tx.status}</p>
-                        </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                        <TrendingUp className="w-8 h-8 text-muted-foreground" />
-                      </div>
-                      <p className="text-muted-foreground mb-2">No transactions yet</p>
-                      <p className="text-sm text-muted-foreground">
-                        Pre-order tickets to get started
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-
-            {/* Sidebar - Takes 1 column */}
-            <div className="space-y-8">
-              {/* Status Card */}
-              <Card className="bg-card border-primary/30 p-6">
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-sm font-medium text-primary">Pre-Launch Member</span>
-                  </div>
-                  <h3 className="font-orbitron text-lg font-bold mb-2">Platform Status</h3>
-                  <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">
-                    COMING SOON
-                  </p>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between py-2 border-t border-border/50">
-                    <span className="text-muted-foreground">Your Pre-Orders</span>
-                    <span className="font-bold text-primary">{preOrderTickets}/2500</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-t border-border/50">
-                    <span className="text-muted-foreground">Bonus Multiplier</span>
-                    <span className="font-bold text-primary">2×</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-t border-border/50">
-                    <span className="text-muted-foreground">Next Lottery</span>
-                    <span className="font-bold">TBA</span>
+                  <div>
+                    <h3 className="font-orbitron text-xl font-bold">Check Past Winners</h3>
+                    <p className="text-sm text-muted-foreground">View the Wall of Fame</p>
                   </div>
                 </div>
-              </Card>
-
-              {/* Info Card */}
-              <Card className="bg-secondary/20 border-primary/30 p-6">
-                <h3 className="font-orbitron font-bold mb-3 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Gift className="w-4 h-4 text-primary" />
-                  </div>
-                  Waitlist Benefits
-                </h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Get 1 bonus ticket for every ticket purchased</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Bonus tickets improve your winning chance</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Only paid tickets contribute to the prize pot</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Early access to platform features</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Automatic smart contract execution</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Transparent on-chain verification</span>
-                  </li>
-                </ul>
-              </Card>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+                <Link to="/wall-of-fame">
+                  <Button variant="outline" className="border-primary/30">
+                    View Winners
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+      </main>
 
       <Footer />
     </div>

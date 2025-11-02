@@ -56,6 +56,137 @@ export type Database = {
         }
         Relationships: []
       }
+      lottery_draws: {
+        Row: {
+          created_at: string | null
+          draw_date: string
+          end_date: string
+          id: string
+          jackpot_lamports: number | null
+          lottery_type: Database["public"]["Enums"]["lottery_type"]
+          start_date: string
+          status: string
+          total_pool_lamports: number | null
+          total_tickets_sold: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          draw_date: string
+          end_date: string
+          id?: string
+          jackpot_lamports?: number | null
+          lottery_type: Database["public"]["Enums"]["lottery_type"]
+          start_date: string
+          status?: string
+          total_pool_lamports?: number | null
+          total_tickets_sold?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          draw_date?: string
+          end_date?: string
+          id?: string
+          jackpot_lamports?: number | null
+          lottery_type?: Database["public"]["Enums"]["lottery_type"]
+          start_date?: string
+          status?: string
+          total_pool_lamports?: number | null
+          total_tickets_sold?: number | null
+        }
+        Relationships: []
+      }
+      lottery_tickets: {
+        Row: {
+          created_at: string | null
+          draw_id: string
+          id: string
+          is_bonus: boolean | null
+          referral_code: string | null
+          ticket_code: string
+          transaction_signature: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          draw_id: string
+          id?: string
+          is_bonus?: boolean | null
+          referral_code?: string | null
+          ticket_code: string
+          transaction_signature?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          draw_id?: string
+          id?: string
+          is_bonus?: boolean | null
+          referral_code?: string | null
+          ticket_code?: string
+          transaction_signature?: string | null
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_tickets_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_draws"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lottery_winners: {
+        Row: {
+          created_at: string | null
+          draw_id: string
+          id: string
+          paid_at: string | null
+          prize_lamports: number
+          prize_tier: string
+          ticket_id: string
+          transaction_signature: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          draw_id: string
+          id?: string
+          paid_at?: string | null
+          prize_lamports: number
+          prize_tier: string
+          ticket_id: string
+          transaction_signature?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          draw_id?: string
+          id?: string
+          paid_at?: string | null
+          prize_lamports?: number
+          prize_tier?: string
+          ticket_id?: string
+          transaction_signature?: string | null
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_winners_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_draws"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lottery_winners_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       processed_transactions: {
         Row: {
           amount_lamports: number
@@ -158,6 +289,24 @@ export type Database = {
           referred_wallet?: string
           referrer_wallet?: string
           tickets_purchased?: number
+        }
+        Relationships: []
+      }
+      sol_price_cache: {
+        Row: {
+          id: string
+          price_usd: number
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          price_usd: number
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          price_usd?: number
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -284,6 +433,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      lottery_type: "monthly" | "weekly" | "daily"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -412,6 +562,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      lottery_type: ["monthly", "weekly", "daily"],
     },
   },
 } as const

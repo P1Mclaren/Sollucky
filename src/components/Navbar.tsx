@@ -70,6 +70,14 @@ export function Navbar() {
           >
             Home
           </Link>
+          <Link
+            to="/wall-of-fame"
+            className={`text-sm font-medium transition-colors ${
+              isActive('/wall-of-fame') ? 'text-primary' : 'text-foreground hover:text-primary'
+            }`}
+          >
+            Winners
+          </Link>
           {connected && (
             <>
               <Link

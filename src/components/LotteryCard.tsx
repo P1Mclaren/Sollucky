@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Clock, Ticket, TrendingUp } from 'lucide-react';
 import { Button } from './ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface LotteryCardProps {
   title: string;
@@ -19,6 +20,18 @@ export function LotteryCard({
   nextDraw,
   index,
 }: LotteryCardProps) {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    if (title.toLowerCase().includes('monthly')) {
+      navigate('/monthly');
+    } else if (title.toLowerCase().includes('weekly')) {
+      navigate('/weekly');
+    } else if (title.toLowerCase().includes('daily')) {
+      navigate('/daily');
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
@@ -67,10 +80,9 @@ export function LotteryCard({
 
         <Button 
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-          disabled={status === 'coming-soon'}
-          onClick={() => document.getElementById('pre-order')?.scrollIntoView({ behavior: 'smooth' })}
+          onClick={handleClick}
         >
-          {status === 'pre-order' ? 'Pre-Order Now' : 'Coming Soon'}
+          {status === 'pre-order' ? 'Pre-Order Now' : 'View Lottery'}
         </Button>
       </div>
     </motion.div>

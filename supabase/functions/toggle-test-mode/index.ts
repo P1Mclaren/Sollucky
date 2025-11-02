@@ -1,6 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { checkRateLimit, RATE_LIMITS } from '../_shared/rate-limiter.ts';
+import { logSecurityEvent, SECURITY_EVENTS } from '../_shared/monitoring.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,6 +68,34 @@ serve(async (req) => {
     }
 
     const { isEnabled } = validationResult.data;
+
+    // Rate limiting for critical operations
+    const rateLimit = await checkRateLimit(supabaseClient, {
+      identifier: adminWallet,
+      ...RATE_LIMITS.ADMIN_CRITICAL
+    });
+
+    if (!rateLimit.allowed) {
+      await logSecurityEvent(supabaseClient, {
+        level: 'warning',
+        eventType: SECURITY_EVENTS.RATE_LIMIT_EXCEEDED,
+        walletAddress: adminWallet,
+        details: {
+          action: 'toggle_test_mode',
+          remaining: rateLimit.remaining,
+          resetAt: rateLimit.resetAt
+        }
+      });
+
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded',
+          remaining: rateLimit.remaining,
+          resetAt: rateLimit.resetAt
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Verify admin role
     const { data: hasAdminRole } = await supabaseClient.rpc('has_role', {

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, RATE_LIMITS } from '../_shared/rate-limiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,6 +53,19 @@ serve(async (req) => {
     }
 
     console.log('📝 Admin data request from:', walletAddress);
+
+    // Rate limiting for read operations
+    const rateLimit = await checkRateLimit(supabase, {
+      identifier: walletAddress,
+      ...RATE_LIMITS.ADMIN_READ
+    });
+
+    if (!rateLimit.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Verify admin role using has_role function
     console.log('🔍 Verifying admin role...');

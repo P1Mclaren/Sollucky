@@ -2,28 +2,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Connection, PublicKey, Transaction, SystemProgram, Keypair, sendAndConfirmTransaction } from "https://esm.sh/@solana/web3.js@1.87.6";
 import bs58 from "https://esm.sh/bs58@5.0.0";
+import { getNetworkConfig, validateNetworkKeys, getLotteryWalletConfig } from '../_shared/network-config.ts';
+import { logSecurityEvent, SECURITY_EVENTS } from '../_shared/monitoring.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-const SOLANA_NETWORK = 'https://api.devnet.solana.com';
-
-// Wallet configurations
-const LOTTERY_WALLETS = {
-  monthly: {
-    publicKey: 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM',
-    privateKeyEnv: 'MONTHLY_LOTTERY_PRIVATE_KEY'
-  },
-  weekly: {
-    publicKey: 'EAcYYNgT3BexVLpjnAwDawd75VXvjcAeCf37bXK4f7Zp',
-    privateKeyEnv: 'WEEKLY_LOTTERY_PRIVATE_KEY'
-  },
-  daily: {
-    publicKey: 'Bt75Ar8C3U5cPVhWmXj8CTF1AG858DsYntqMbAwQhRqj',
-    privateKeyEnv: 'DAILY_LOTTERY_PRIVATE_KEY'
-  }
 };
 
 serve(async (req) => {
@@ -60,6 +44,38 @@ serve(async (req) => {
     }
 
     console.log(`📊 Processing ${draw.lottery_type} lottery draw`);
+
+    // Extract wallet address from JWT token
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '') || '';
+    const { data: { user } } = await supabase.auth.getUser(token);
+    const walletAddress = user?.user_metadata?.wallet_address || 'system';
+
+    // Get network configuration based on test mode
+    const networkConfig = getNetworkConfig(draw.test_mode || false);
+    
+    // Validate network keys before proceeding
+    validateNetworkKeys(networkConfig.network, {
+      MONTHLY_LOTTERY_PRIVATE_KEY: Deno.env.get('MONTHLY_LOTTERY_PRIVATE_KEY'),
+      WEEKLY_LOTTERY_PRIVATE_KEY: Deno.env.get('WEEKLY_LOTTERY_PRIVATE_KEY'),
+      DAILY_LOTTERY_PRIVATE_KEY: Deno.env.get('DAILY_LOTTERY_PRIVATE_KEY'),
+    });
+
+    // Log security event
+    await logSecurityEvent(supabase, {
+      level: 'critical',
+      eventType: SECURITY_EVENTS.LOTTERY_DRAW,
+      walletAddress: walletAddress,
+      details: {
+        drawId,
+        lotteryType: draw.lottery_type,
+        network: networkConfig.network,
+        testMode: networkConfig.isTestMode
+      }
+    });
+
+    console.log(`🎲 Drawing winners for ${draw.lottery_type} lottery (Draw #${drawId})`);
+    console.log(`Network: ${networkConfig.network}, Test Mode: ${networkConfig.isTestMode}`);
 
     // Get all tickets for this draw
     const { data: tickets, error: ticketsError } = await supabase
@@ -170,9 +186,9 @@ serve(async (req) => {
 
     // Payout winners automatically
     console.log('💸 Initiating payouts...');
-    const connection = new Connection(SOLANA_NETWORK, 'confirmed');
-    const walletConfig = LOTTERY_WALLETS[draw.lottery_type as keyof typeof LOTTERY_WALLETS];
-    const privateKey = Deno.env.get(walletConfig.privateKeyEnv);
+    const connection = new Connection(networkConfig.rpcEndpoint, 'confirmed');
+    const walletConfig = getLotteryWalletConfig(draw.lottery_type as 'monthly' | 'weekly' | 'daily', networkConfig.network);
+    const privateKey = Deno.env.get(walletConfig.privateKeyEnvVar);
     
     if (!privateKey) {
       throw new Error(`Private key not configured for ${draw.lottery_type} lottery`);

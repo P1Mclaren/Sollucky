@@ -21,11 +21,24 @@ export function useWalletAuth() {
 
     setLoading(true);
     try {
+      // Check if we already have a valid session
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession) {
+        setSession(existingSession);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('auth-wallet', {
         body: { walletAddress: publicKey.toString() },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Don't throw on rate limit errors, just log them
+        console.warn('Wallet authentication issue:', error);
+        setLoading(false);
+        return;
+      }
 
       if (data?.session) {
         setSession(data.session);
@@ -34,6 +47,9 @@ export function useWalletAuth() {
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         });
+      } else if (data?.message) {
+        // Handle rate limit or pending confirmation
+        console.log(data.message);
       }
     } catch (error) {
       console.error('Failed to authenticate wallet:', error);

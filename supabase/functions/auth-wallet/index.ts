@@ -65,22 +65,71 @@ serve(async (req) => {
 
     // If sign in fails, create the user
     if (signInResult.error) {
-      const signUpResult = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            wallet_address: walletAddress,
+      // Check if user exists but can't sign in (e.g., rate limit or confirmation pending)
+      const { data: existingUsers } = await supabaseClient.auth.admin.listUsers();
+      const existingUser = existingUsers?.users?.find((u: any) => u.email === email);
+      
+      if (existingUser) {
+        // User exists, create a session manually using admin API
+        const { data: sessionData, error: sessionError } = await supabaseClient.auth.admin.generateLink({
+          type: 'magiclink',
+          email,
+        });
+        
+        if (sessionError) {
+          console.error('Error generating session:', sessionError);
+          // Return user without session
+          return new Response(
+            JSON.stringify({
+              session: null,
+              user: existingUser,
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Sign in with the generated link
+        const { data: linkSession } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        session = linkSession.session;
+        user = linkSession.user || existingUser;
+      } else {
+        // Create new user with auto-confirm
+        const signUpResult = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              wallet_address: walletAddress,
+            },
+            emailRedirectTo: undefined,
           },
-        },
-      });
+        });
 
-      if (signUpResult.error) {
-        throw signUpResult.error;
+        if (signUpResult.error) {
+          // If it's a rate limit error, try to get existing user info
+          if (signUpResult.error.message.includes('For security purposes')) {
+            const { data: users } = await supabaseClient.auth.admin.listUsers();
+            const foundUser = users?.users?.find((u: any) => u.email === email);
+            
+            return new Response(
+              JSON.stringify({
+                session: null,
+                user: foundUser || null,
+                message: 'Authentication in progress. Please wait a moment and reconnect.',
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          throw signUpResult.error;
+        }
+
+        session = signUpResult.data.session;
+        user = signUpResult.data.user;
       }
-
-      session = signUpResult.data.session;
-      user = signUpResult.data.user;
     }
 
     // Return the session

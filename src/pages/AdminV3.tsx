@@ -216,55 +216,51 @@ export default function AdminV3() {
   };
 
   const handleTestDraw = async (lotteryType: 'monthly' | 'weekly' | 'daily') => {
-    console.log('🎯 Test Draw button clicked for:', lotteryType);
     if (!publicKey) {
-      console.log('❌ No public key');
+      toast({
+        title: 'Connect Wallet',
+        description: 'Please connect your wallet first',
+        variant: 'destructive',
+      });
       return;
     }
 
     try {
-      console.log('🔑 Getting session...');
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        console.log('❌ No session found');
         toast({
           title: 'Authentication Required',
-          description: 'Please reconnect your wallet to perform admin actions.',
+          description: 'Please reconnect your wallet',
           variant: 'destructive',
         });
         return;
       }
 
-      console.log('✅ Session found, fetching draw...');
-      
-      // Get any draw (prefer ones with status active/pre-order, but allow completed for testing)
+      // Get the most recent draw for this lottery type
       const { data: draw, error: drawError } = await supabase
         .from('lottery_draws')
-        .select('id, lottery_type, status')
+        .select('id')
         .eq('lottery_type', lotteryType)
-        .in('status', ['pre-order', 'active', 'completed'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      console.log('📊 Selected draw:', draw);
-
       if (drawError || !draw) {
-        console.log('❌ No active draw found');
         toast({
-          title: 'No Active Draw',
-          description: `No active ${lotteryType} lottery draw found. Initialize draws first.`,
+          title: 'No Draw Found',
+          description: `No ${lotteryType} lottery draw found. Initialize draws first.`,
           variant: 'destructive',
         });
         return;
       }
 
-      console.log('🎲 Starting winner draw for draw ID:', draw.id);
       toast({
-        title: 'Drawing Winners...',
-        description: `Testing automatic winner selection and payouts for ${lotteryType} lottery`,
+        title: 'Starting Draw...',
+        description: `Drawing winners for ${lotteryType} lottery on devnet`,
       });
+
+      console.log(`🎲 Calling draw-winners for ${lotteryType} (${draw.id})`);
 
       const { data, error } = await supabase.functions.invoke('draw-winners', {
         body: { drawId: draw.id },
@@ -273,21 +269,25 @@ export default function AdminV3() {
         }
       });
 
-      console.log('🎉 Draw winners result:', { data, error });
+      if (error) {
+        console.error('Draw error:', error);
+        throw error;
+      }
 
-      if (error) throw error;
+      console.log('Draw result:', data);
 
       await fetchData();
 
       toast({
-        title: 'Draw Completed!',
-        description: `${data.winners} winners selected and paid automatically. Check audit log for details.`,
+        title: 'Draw Complete!',
+        description: `${data.total_winners} winners selected. ${data.successful_payouts} payouts successful on devnet.`,
       });
+
     } catch (error) {
-      console.error('❌ Error running test draw:', error);
+      console.error('Error:', error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to run test draw',
+        title: 'Draw Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'destructive',
       });
     }

@@ -2,8 +2,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Connection, PublicKey, Transaction, SystemProgram, Keypair, sendAndConfirmTransaction } from "https://esm.sh/@solana/web3.js@1.87.6";
 import bs58 from "https://esm.sh/bs58@5.0.0";
-import { getNetworkConfig, validateNetworkKeys, getLotteryWalletConfig } from '../_shared/network-config.ts';
-import { logSecurityEvent, SECURITY_EVENTS } from '../_shared/monitoring.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,15 +14,12 @@ serve(async (req) => {
   }
 
   try {
-    console.log('=== DRAW-WINNERS FUNCTION STARTED ===');
+    console.log('=== DRAW WINNERS V2 STARTED ===');
     
     const { drawId } = await req.json();
     
     if (!drawId) {
-      return new Response(
-        JSON.stringify({ error: 'Draw ID is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new Error('Draw ID is required');
     }
 
     const supabase = createClient(
@@ -32,7 +27,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get draw info
+    // 1. GET DRAW INFO
+    console.log('📊 Fetching draw:', drawId);
     const { data: draw, error: drawError } = await supabase
       .from('lottery_draws')
       .select('*')
@@ -40,143 +36,81 @@ serve(async (req) => {
       .single();
 
     if (drawError || !draw) {
-      throw new Error('Draw not found');
+      throw new Error('Draw not found: ' + drawError?.message);
     }
 
-    console.log(`📊 Processing ${draw.lottery_type} lottery draw`);
+    console.log(`✅ Found ${draw.lottery_type} lottery draw`);
+    console.log(`   Status: ${draw.status}`);
+    console.log(`   Total pool: ${draw.total_pool_lamports} lamports`);
 
-    // Extract wallet address from JWT token
-    const authHeader = req.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '') || '';
-    const { data: { user } } = await supabase.auth.getUser(token);
-    const walletAddress = user?.user_metadata?.wallet_address || 'system';
-
-    // Get network configuration based on test mode
-    const networkConfig = getNetworkConfig(draw.test_mode || false);
-    
-    // Validate network keys before proceeding
-    validateNetworkKeys(networkConfig.network, {
-      MONTHLY_LOTTERY_PRIVATE_KEY: Deno.env.get('MONTHLY_LOTTERY_PRIVATE_KEY'),
-      WEEKLY_LOTTERY_PRIVATE_KEY: Deno.env.get('WEEKLY_LOTTERY_PRIVATE_KEY'),
-      DAILY_LOTTERY_PRIVATE_KEY: Deno.env.get('DAILY_LOTTERY_PRIVATE_KEY'),
-    });
-
-    // Log security event
-    await logSecurityEvent(supabase, {
-      level: 'critical',
-      eventType: SECURITY_EVENTS.LOTTERY_DRAW,
-      walletAddress: walletAddress,
-      details: {
-        drawId,
-        lotteryType: draw.lottery_type,
-        network: networkConfig.network,
-        testMode: networkConfig.isTestMode
-      }
-    });
-
-    console.log(`🎲 Drawing winners for ${draw.lottery_type} lottery (Draw #${drawId})`);
-    console.log(`Network: ${networkConfig.network}, Test Mode: ${networkConfig.isTestMode}`);
-    console.log(`Draw details:`, JSON.stringify(draw, null, 2));
-
-    // Get all tickets for this draw
-    console.log(`🔍 Querying tickets for draw_id: ${drawId}`);
-    let { data: tickets, error: ticketsError } = await supabase
+    // 2. GET OR CREATE TICKETS
+    console.log('🎫 Fetching tickets...');
+    let { data: tickets } = await supabase
       .from('lottery_tickets')
       .select('*')
       .eq('draw_id', drawId);
-    
-    console.log(`Ticket query result - Count: ${tickets?.length || 0}, Error:`, ticketsError);
 
-    if (ticketsError) {
-      throw new Error(`Error fetching tickets: ${ticketsError.message}`);
-    }
-
-    // If no tickets exist for this draw, try to use tickets from another draw of the same type for testing
+    // If no tickets, create test tickets for devnet testing
     if (!tickets || tickets.length === 0) {
-      console.log('⚠️ No tickets found for this draw, looking for tickets from other draws...');
+      console.log('⚠️  No tickets found. Creating test tickets for devnet testing...');
       
-      const { data: otherDrawTickets } = await supabase
-        .from('lottery_tickets')
-        .select('*, lottery_draws!inner(lottery_type)')
-        .eq('lottery_draws.lottery_type', draw.lottery_type)
-        .limit(200);
-
-      if (otherDrawTickets && otherDrawTickets.length > 0) {
-        console.log(`✅ Found ${otherDrawTickets.length} tickets from other ${draw.lottery_type} draws, reassigning to current draw`);
-        
-        // Update these tickets to belong to the current draw for testing
-        const ticketIds = otherDrawTickets.map(t => t.id);
-        await supabase
-          .from('lottery_tickets')
-          .update({ draw_id: drawId })
-          .in('id', ticketIds);
-
-        // Fetch the reassigned tickets
-        const { data: reassignedTickets } = await supabase
-          .from('lottery_tickets')
-          .select('*')
-          .eq('draw_id', drawId);
-
-        tickets = reassignedTickets || [];
-      } else {
-        console.log('⚠️ No tickets found anywhere, creating test tickets...');
-        const testTickets = [];
-        const testWalletCount = draw.lottery_type === 'monthly' ? 150 : draw.lottery_type === 'weekly' ? 50 : 10;
-        
-        for (let i = 0; i < testWalletCount; i++) {
-          const randomWallet = Keypair.generate().publicKey.toString();
-          testTickets.push({
-            draw_id: drawId,
-            wallet_address: randomWallet,
-            ticket_code: `TEST-${Date.now()}-${i}`,
-            is_bonus: false
-          });
-        }
-
-        const { error: insertError } = await supabase
-          .from('lottery_tickets')
-          .insert(testTickets);
-
-        if (insertError) {
-          throw new Error(`Failed to create test tickets: ${insertError.message}`);
-        }
-
-        const { data: newTickets } = await supabase
-          .from('lottery_tickets')
-          .select('*')
-          .eq('draw_id', drawId);
-
-        tickets = newTickets || [];
-        console.log(`✅ Created ${tickets.length} test tickets`);
+      const ticketCount = draw.lottery_type === 'monthly' ? 150 : 
+                          draw.lottery_type === 'weekly' ? 50 : 10;
+      
+      const testTickets = [];
+      for (let i = 0; i < ticketCount; i++) {
+        const randomWallet = Keypair.generate().publicKey.toString();
+        testTickets.push({
+          draw_id: drawId,
+          wallet_address: randomWallet,
+          ticket_code: `TEST-${Date.now()}-${i}`,
+          is_bonus: false
+        });
       }
+
+      await supabase.from('lottery_tickets').insert(testTickets);
+      
+      const { data: newTickets } = await supabase
+        .from('lottery_tickets')
+        .select('*')
+        .eq('draw_id', drawId);
+      
+      tickets = newTickets || [];
+      console.log(`✅ Created ${tickets.length} test tickets`);
+    } else {
+      console.log(`✅ Found ${tickets.length} existing tickets`);
     }
 
-    if (!tickets || tickets.length === 0) {
-      throw new Error('Failed to get or create tickets for testing');
+    if (tickets.length === 0) {
+      throw new Error('No tickets available for draw');
     }
 
-    console.log(`🎫 Using ${tickets.length} tickets for draw`);
-
-    // Calculate prize pool (70% of total pool)
+    // 3. CALCULATE PRIZES
     const prizePoolLamports = Math.floor(draw.total_pool_lamports * 0.7);
-    console.log(`💰 Prize pool: ${prizePoolLamports} lamports`);
+    console.log(`💰 Prize pool (70% of total): ${prizePoolLamports} lamports`);
 
-    // Select winners based on lottery type
-    const winners = [];
-    
     // Shuffle tickets for random selection
     const shuffled = [...tickets].sort(() => Math.random() - 0.5);
+    const winners: Array<{
+      ticket_id: string;
+      wallet_address: string;
+      prize_tier: string;
+      prize_lamports: number;
+    }> = [];
 
+    // Calculate winners based on lottery type
     if (draw.lottery_type === 'monthly') {
-      // Monthly: 60% jackpot, 5% runner-up, 5% split among up to 100 wallets
-      if (shuffled.length > 0) {
-        winners.push({
-          ticket_id: shuffled[0].id,
-          wallet_address: shuffled[0].wallet_address,
-          prize_tier: 'jackpot',
-          prize_lamports: Math.floor(prizePoolLamports * 0.6)
-        });
-      }
+      console.log('🎰 MONTHLY: 60% jackpot, 5% runner-up, 5% to up to 100 wallets');
+      
+      // 60% jackpot
+      winners.push({
+        ticket_id: shuffled[0].id,
+        wallet_address: shuffled[0].wallet_address,
+        prize_tier: 'jackpot',
+        prize_lamports: Math.floor(prizePoolLamports * 0.6)
+      });
+
+      // 5% runner-up
       if (shuffled.length > 1) {
         winners.push({
           ticket_id: shuffled[1].id,
@@ -185,34 +119,37 @@ serve(async (req) => {
           prize_lamports: Math.floor(prizePoolLamports * 0.05)
         });
       }
+
+      // 5% split among up to 100 wallets
+      const availableForSplit = shuffled.slice(2);
+      const splitCount = Math.min(100, availableForSplit.length);
       
-      // 5% split among up to 100 wallets (or all available if less)
-      const availableForRandom = shuffled.slice(2); // Exclude jackpot and runner-up
-      const randomWinnerCount = Math.min(100, availableForRandom.length);
-      
-      if (randomWinnerCount > 0) {
-        const randomPrize = Math.floor((prizePoolLamports * 0.05) / randomWinnerCount);
-        console.log(`💰 Splitting 5% among ${randomWinnerCount} random winners (${randomPrize} lamports each)`);
+      if (splitCount > 0) {
+        const splitAmount = Math.floor((prizePoolLamports * 0.05) / splitCount);
+        console.log(`   Splitting 5% among ${splitCount} wallets (${splitAmount} lamports each)`);
         
-        for (let i = 0; i < randomWinnerCount; i++) {
+        for (let i = 0; i < splitCount; i++) {
           winners.push({
-            ticket_id: availableForRandom[i].id,
-            wallet_address: availableForRandom[i].wallet_address,
-            prize_tier: 'random',
-            prize_lamports: randomPrize
+            ticket_id: availableForSplit[i].id,
+            wallet_address: availableForSplit[i].wallet_address,
+            prize_tier: 'split',
+            prize_lamports: splitAmount
           });
         }
       }
+
     } else if (draw.lottery_type === 'weekly') {
-      // Weekly: 65% jackpot, 5% runner-up
-      if (shuffled.length > 0) {
-        winners.push({
-          ticket_id: shuffled[0].id,
-          wallet_address: shuffled[0].wallet_address,
-          prize_tier: 'jackpot',
-          prize_lamports: Math.floor(prizePoolLamports * 0.65)
-        });
-      }
+      console.log('🎰 WEEKLY: 65% jackpot, 5% runner-up');
+      
+      // 65% jackpot
+      winners.push({
+        ticket_id: shuffled[0].id,
+        wallet_address: shuffled[0].wallet_address,
+        prize_tier: 'jackpot',
+        prize_lamports: Math.floor(prizePoolLamports * 0.65)
+      });
+
+      // 5% runner-up
       if (shuffled.length > 1) {
         winners.push({
           ticket_id: shuffled[1].id,
@@ -221,58 +158,84 @@ serve(async (req) => {
           prize_lamports: Math.floor(prizePoolLamports * 0.05)
         });
       }
+
     } else if (draw.lottery_type === 'daily') {
-      // Daily: 70% (all prize pool) to jackpot winner
-      if (shuffled.length > 0) {
-        winners.push({
-          ticket_id: shuffled[0].id,
-          wallet_address: shuffled[0].wallet_address,
-          prize_tier: 'jackpot',
-          prize_lamports: prizePoolLamports
-        });
-      }
+      console.log('🎰 DAILY: 70% jackpot');
+      
+      // 70% jackpot (entire prize pool)
+      winners.push({
+        ticket_id: shuffled[0].id,
+        wallet_address: shuffled[0].wallet_address,
+        prize_tier: 'jackpot',
+        prize_lamports: prizePoolLamports
+      });
     }
 
     console.log(`🏆 Selected ${winners.length} winners`);
+    winners.forEach(w => {
+      console.log(`   ${w.prize_tier}: ${w.wallet_address.slice(0, 8)}... = ${w.prize_lamports} lamports`);
+    });
 
-    // Save winners to database
+    // 4. SAVE WINNERS TO DATABASE
+    console.log('💾 Saving winners to database...');
     const { error: winnersError } = await supabase
       .from('lottery_winners')
       .insert(
         winners.map(w => ({
-          ...w,
-          draw_id: drawId
+          draw_id: drawId,
+          ticket_id: w.ticket_id,
+          wallet_address: w.wallet_address,
+          prize_tier: w.prize_tier,
+          prize_lamports: w.prize_lamports
         }))
       );
 
     if (winnersError) {
-      console.error('Error saving winners:', winnersError);
-      throw winnersError;
+      throw new Error('Failed to save winners: ' + winnersError.message);
     }
 
-    // Update draw status
+    // 5. UPDATE DRAW STATUS
     await supabase
       .from('lottery_draws')
       .update({ status: 'completed' })
       .eq('id', drawId);
 
-    console.log('✅ Winners selected and saved');
+    console.log('✅ Winners saved and draw marked as completed');
 
-    // Payout winners automatically
-    console.log('💸 Initiating payouts...');
-    const connection = new Connection(networkConfig.rpcEndpoint, 'confirmed');
-    const walletConfig = getLotteryWalletConfig(draw.lottery_type as 'monthly' | 'weekly' | 'daily', networkConfig.network);
-    const privateKey = Deno.env.get(walletConfig.privateKeyEnvVar);
+    // 6. SEND ACTUAL SOL ON DEVNET
+    console.log('💸 Processing payouts on devnet...');
     
-    if (!privateKey) {
-      throw new Error(`Private key not configured for ${draw.lottery_type} lottery`);
+    // Get the correct private key for this lottery type
+    const privateKeyEnvVar = draw.lottery_type === 'monthly' ? 'MONTHLY_LOTTERY_PRIVATE_KEY' :
+                            draw.lottery_type === 'weekly' ? 'WEEKLY_LOTTERY_PRIVATE_KEY' :
+                            'DAILY_LOTTERY_PRIVATE_KEY';
+    
+    const privateKeyStr = Deno.env.get(privateKeyEnvVar);
+    
+    if (!privateKeyStr) {
+      throw new Error(`Private key not found: ${privateKeyEnvVar}`);
     }
 
-    const fromKeypair = Keypair.fromSecretKey(bs58.decode(privateKey));
+    console.log(`🔑 Using wallet for ${draw.lottery_type} lottery`);
 
+    // Connect to devnet
+    const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+    const fromKeypair = Keypair.fromSecretKey(bs58.decode(privateKeyStr));
+    
+    console.log(`   From: ${fromKeypair.publicKey.toString()}`);
+
+    // Check balance
+    const balance = await connection.getBalance(fromKeypair.publicKey);
+    console.log(`   Balance: ${balance} lamports (${(balance / 1e9).toFixed(4)} SOL)`);
+
+    let successfulPayouts = 0;
+    let failedPayouts = 0;
+
+    // Send payments to each winner
     for (const winner of winners) {
       try {
         const toPublicKey = new PublicKey(winner.wallet_address);
+        
         const transaction = new Transaction().add(
           SystemProgram.transfer({
             fromPubkey: fromKeypair.publicKey,
@@ -281,13 +244,16 @@ serve(async (req) => {
           })
         );
 
+        console.log(`   Sending ${winner.prize_lamports} lamports to ${winner.wallet_address.slice(0, 8)}...`);
+        
         const signature = await sendAndConfirmTransaction(
           connection,
           transaction,
-          [fromKeypair]
+          [fromKeypair],
+          { commitment: 'confirmed' }
         );
 
-        // Update winner with transaction signature
+        // Update winner record with transaction signature
         await supabase
           .from('lottery_winners')
           .update({
@@ -297,24 +263,42 @@ serve(async (req) => {
           .eq('draw_id', drawId)
           .eq('wallet_address', winner.wallet_address);
 
-        console.log(`✅ Paid ${winner.wallet_address}: ${signature}`);
+        console.log(`   ✅ Paid! Signature: ${signature}`);
+        successfulPayouts++;
+
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
+
       } catch (error) {
-        console.error(`❌ Failed to pay ${winner.wallet_address}:`, error);
+        console.error(`   ❌ Failed to pay ${winner.wallet_address}:`, error);
+        failedPayouts++;
       }
     }
 
+    console.log('=== DRAW COMPLETE ===');
+    console.log(`✅ Successful payouts: ${successfulPayouts}`);
+    console.log(`❌ Failed payouts: ${failedPayouts}`);
+
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        winners: winners.length,
-        message: 'Winners drawn and payouts processed'
+        success: true,
+        draw_id: drawId,
+        lottery_type: draw.lottery_type,
+        total_winners: winners.length,
+        successful_payouts: successfulPayouts,
+        failed_payouts: failedPayouts,
+        message: 'Draw completed and payouts processed'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error) {
-    console.error('Error drawing winners:', error);
+    console.error('❌ ERROR:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: error instanceof Error ? error.stack : undefined
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

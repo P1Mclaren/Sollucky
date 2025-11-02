@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,12 +13,36 @@ serve(async (req) => {
   }
 
   try {
-    const { walletAddress } = await req.json();
+    // Validate input
+    const AuthWalletSchema = z.object({
+      walletAddress: z.string()
+        .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, 'Invalid Solana wallet address format')
+        .min(32, 'Wallet address too short')
+        .max(44, 'Wallet address too long')
+    });
 
-    if (!walletAddress) {
+    const body = await req.json();
+    const validationResult = AuthWalletSchema.safeParse(body);
+
+    if (!validationResult.success) {
       return new Response(
-        JSON.stringify({ error: 'Wallet address is required' }),
+        JSON.stringify({ 
+          error: 'Invalid input', 
+          details: validationResult.error.issues.map(i => i.message).join(', ')
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { walletAddress } = validationResult.data;
+
+    // Ensure WALLET_AUTH_SECRET is configured
+    const password = Deno.env.get('WALLET_AUTH_SECRET');
+    if (!password) {
+      console.error('CRITICAL: WALLET_AUTH_SECRET is not configured');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -27,9 +52,7 @@ serve(async (req) => {
     );
 
     // Create or sign in user with wallet address as identifier
-    // Using wallet address as both email (with domain) and in metadata
     const email = `${walletAddress}@wallet.local`;
-    const password = Deno.env.get('WALLET_AUTH_SECRET') ?? 'default-secret-change-me';
 
     // Try to sign in first
     const signInResult = await supabaseClient.auth.signInWithPassword({

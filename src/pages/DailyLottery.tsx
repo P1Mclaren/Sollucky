@@ -13,7 +13,7 @@ const DailyLottery = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 pt-24 pb-6 space-y-6">
         <div className="text-center space-y-3 py-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 border-2 border-primary rounded-full">
             <Rocket className="w-5 h-5 text-primary" />

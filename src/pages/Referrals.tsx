@@ -27,7 +27,7 @@ interface ReferralEarnings {
 }
 
 const LAMPORTS_PER_SOL = 1000000000;
-const MINIMUM_WITHDRAWAL_SOL = 10;
+const MINIMUM_WITHDRAWAL_SOL = 0.05; // ~$10 worth of SOL
 
 const Referrals = () => {
   const { publicKey, wallet } = useWallet();

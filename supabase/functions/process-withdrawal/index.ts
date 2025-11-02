@@ -9,7 +9,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MINIMUM_WITHDRAWAL_LAMPORTS = 10000000000; // $10 in lamports (assuming 1 SOL = $1)
+const MINIMUM_WITHDRAWAL_LAMPORTS = 50000000; // ~$10 worth of SOL (0.05 SOL at ~$200/SOL)
 const SOLANA_NETWORK = 'https://api.devnet.solana.com';
 
 serve(async (req) => {

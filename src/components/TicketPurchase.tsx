@@ -31,7 +31,7 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
   const totalPriceSol = ticketPriceSol * ticketCount;
   const totalPriceUsd = ticketPriceUsd * ticketCount;
 
-  const bonusTickets = isPreOrder && lotteryType === 'monthly' ? ticketCount * 2 : 0;
+  const bonusTickets = isPreOrder && lotteryType === 'monthly' ? ticketCount : 0;
   const totalTickets = ticketCount + bonusTickets;
 
   // Get lottery wallet address based on type

@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useTestMode } from '@/contexts/TestModeContext';
-import { Play, Square, RotateCcw, Activity } from 'lucide-react';
+import { Play, Square, RotateCcw, Activity, Rocket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface TestLotteryRun {
@@ -228,6 +228,36 @@ export default function AdminV3() {
     }
   };
 
+  const handleInitializeDraws = async () => {
+    if (!publicKey) return;
+
+    if (!confirm('Initialize lottery draws? This will create the initial monthly, weekly, and daily draws.')) {
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('initialize-draws', {
+        body: {},
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Draws Initialized',
+        description: `Successfully created ${data?.draws?.length || 0} lottery draws`,
+      });
+
+      await fetchData();
+    } catch (error) {
+      console.error('Error initializing draws:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to initialize draws',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getLotteryStatus = (lotteryType: string) => {
     const run = testRuns.find(
       (r) => r.lottery_type === lotteryType && r.status === 'RUNNING'
@@ -397,7 +427,7 @@ export default function AdminV3() {
                   className="w-20 px-3 py-1 bg-background border border-border rounded-md text-sm"
                 />
               </div>
-              <div className="pt-2 border-t border-border">
+              <div className="pt-2 border-t border-border space-y-2">
                 <Button
                   variant="destructive"
                   size="sm"
@@ -408,6 +438,29 @@ export default function AdminV3() {
                   Reset All Test Data
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Production Controls */}
+        {!isTestMode && (
+          <Card className="mb-6 border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Production Controls</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleInitializeDraws}
+                className="w-full"
+              >
+                <Rocket className="w-4 h-4 mr-2" />
+                Initialize Lottery Draws
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Creates the initial monthly, weekly, and daily lottery draws. Only run this once at launch.
+              </p>
             </CardContent>
           </Card>
         )}

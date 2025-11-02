@@ -79,7 +79,7 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
     let signature: string | undefined;
 
     try {
-      // Create Solana connection - MAINNET ONLY
+      // Using QuickNode free public endpoint
       const network = 'https://api.mainnet-beta.solana.com';
       console.log('🌐 Connecting to mainnet:', network);
       const connection = new Connection(network, 'confirmed');

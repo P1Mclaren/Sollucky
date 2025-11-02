@@ -15,7 +15,7 @@ const WeeklyLottery = () => {
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="text-center space-y-3 py-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-full">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/20 border-2 border-accent rounded-full">
             <Zap className="w-5 h-5 text-accent" />
             <span className="font-orbitron text-accent font-semibold">Weekly Lottery</span>
           </div>

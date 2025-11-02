@@ -19,7 +19,7 @@ const MonthlyLottery = () => {
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Header */}
         <div className="text-center space-y-3 py-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 border-2 border-primary rounded-full">
             <Trophy className="w-5 h-5 text-primary" />
             <span className="font-orbitron text-primary font-semibold">Monthly Lottery</span>
           </div>

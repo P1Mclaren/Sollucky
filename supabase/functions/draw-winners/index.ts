@@ -2,11 +2,16 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from "https://esm.sh/@solana/web3.js@1.87.6";
 import bs58 from "https://esm.sh/bs58@5.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const DrawWinnersSchema = z.object({
+  drawId: z.string().uuid('Invalid draw ID format')
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -16,16 +21,73 @@ serve(async (req) => {
   try {
     console.log('=== DRAW WINNERS V2 STARTED ===');
     
-    const { drawId } = await req.json();
-    
-    if (!drawId) {
-      throw new Error('Draw ID is required');
+    // 🔒 AUTHENTICATION & AUTHORIZATION
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('❌ Missing Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Missing authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('❌ Invalid token:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const adminWallet = user.user_metadata?.wallet_address;
+    if (!adminWallet) {
+      console.error('❌ No wallet address in token');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No wallet address' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('🔍 Verifying admin role for:', adminWallet);
+    const { data: hasAdminRole, error: roleError } = await supabase.rpc('has_role', {
+      _wallet: adminWallet,
+      _role: 'admin',
+    });
+
+    if (roleError || !hasAdminRole) {
+      console.error('❌ Unauthorized admin access attempt from:', adminWallet);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('✅ Admin role verified');
+    
+    // 🔒 INPUT VALIDATION
+    const body = await req.json();
+    const validationResult = DrawWinnersSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      console.error('❌ Invalid input:', validationResult.error);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input', 
+          details: validationResult.error.issues.map(i => i.message).join(', ')
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { drawId } = validationResult.data;
 
     // 1. GET DRAW INFO
     console.log('📊 Fetching draw:', drawId);

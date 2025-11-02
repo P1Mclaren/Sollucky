@@ -17,10 +17,56 @@ serve(async (req) => {
   try {
     console.log('=== INITIALIZE-DRAWS FUNCTION STARTED ===');
     
+    // 🔒 AUTHENTICATION & AUTHORIZATION
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('❌ Missing Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Missing authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('❌ Invalid token:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const adminWallet = user.user_metadata?.wallet_address;
+    if (!adminWallet) {
+      console.error('❌ No wallet address in token');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No wallet address' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('🔍 Verifying admin role for:', adminWallet);
+    const { data: hasAdminRole, error: roleError } = await supabase.rpc('has_role', {
+      _wallet: adminWallet,
+      _role: 'admin',
+    });
+
+    if (roleError || !hasAdminRole) {
+      console.error('❌ Unauthorized admin access attempt from:', adminWallet);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('✅ Admin role verified');
 
     // Create initial draws for each lottery type
     const draws = [

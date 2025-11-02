@@ -52,6 +52,65 @@ const ReferralsV3 = () => {
       return;
     }
     loadAllData();
+
+    // Set up realtime subscriptions for instant updates
+    const earningsChannel = supabase
+      .channel('referral-earnings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'referral_earnings',
+          filter: `wallet_address=eq.${publicKey.toString()}`
+        },
+        () => {
+          console.log('Earnings updated, reloading...');
+          loadEarnings();
+        }
+      )
+      .subscribe();
+
+    const withdrawalsChannel = supabase
+      .channel('withdrawal-requests-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'withdrawal_requests',
+          filter: `wallet_address=eq.${publicKey.toString()}`
+        },
+        () => {
+          console.log('Withdrawals updated, reloading...');
+          loadWithdrawalHistory();
+          loadEarnings();
+        }
+      )
+      .subscribe();
+
+    const referralsChannel = supabase
+      .channel('referrals-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'referrals',
+          filter: `referrer_wallet=eq.${publicKey.toString()}`
+        },
+        () => {
+          console.log('Referrals updated, reloading...');
+          loadReferrals();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(earningsChannel);
+      supabase.removeChannel(withdrawalsChannel);
+      supabase.removeChannel(referralsChannel);
+    };
   }, [publicKey, navigate]);
 
   const loadAllData = async () => {

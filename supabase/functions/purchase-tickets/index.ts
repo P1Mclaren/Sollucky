@@ -26,17 +26,19 @@ serve(async (req) => {
   }
 
   try {
-    const { walletAddress, ticketAmount, referralCode, txSignature } = await req.json();
+    const { walletAddress, ticketAmount, referralCode, txSignature, drawId, lotteryType } = await req.json();
     console.log('📝 Purchase request received:', { 
       walletAddress, 
       ticketAmount, 
       referralCode: referralCode || 'NONE', 
-      txSignature 
+      txSignature,
+      drawId,
+      lotteryType
     });
 
     // Validate inputs
     console.log('🔍 Validating inputs...');
-    if (!walletAddress || !ticketAmount || !txSignature) {
+    if (!walletAddress || !ticketAmount || !txSignature || !drawId || !lotteryType) {
       console.error('❌ Validation failed: Missing required fields');
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
@@ -70,6 +72,26 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    // Validate draw exists and is active/pre-order
+    console.log('🔍 Validating lottery draw...');
+    const { data: draw, error: drawError } = await supabase
+      .from('lottery_draws')
+      .select('*')
+      .eq('id', drawId)
+      .eq('lottery_type', lotteryType)
+      .in('status', ['active', 'pre-order'])
+      .maybeSingle();
+
+    if (drawError || !draw) {
+      console.error('❌ Invalid or inactive lottery draw:', drawError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid or inactive lottery draw' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    console.log(`✅ Draw validated: ${draw.lottery_type} - ${draw.status}`);
 
     // Check if transaction signature was already processed
     const { data: existingTx, error: txCheckError } = await supabase
@@ -312,79 +334,54 @@ serve(async (req) => {
       console.error('Error recording fund split:', fundSplitError);
     }
 
-    // Update or create ticket record
-    const { data: existingTickets } = await supabase
-      .from('tickets')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .maybeSingle();
-
+    // Generate unique ticket codes and create lottery tickets
+    console.log('🎫 Generating lottery tickets...');
     const totalTickets = ticketAmount + bonusTickets;
+    const generateTicketCode = (index: number, isBonus: boolean) => {
+      const prefix = lotteryType.substring(0, 1).toUpperCase();
+      const timestamp = Date.now().toString(36).toUpperCase();
+      const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const suffix = isBonus ? 'B' : 'P';
+      return `${prefix}-${timestamp}-${random}-${suffix}${index}`;
+    };
 
-    if (existingTickets) {
-      // Update existing record
-      const newTicketCount = existingTickets.ticket_count + ticketAmount;
-      const newBonusCount = existingTickets.bonus_tickets + bonusTickets;
-      
-      const { error: updateError } = await supabase
-        .from('tickets')
-        .update({
-          ticket_count: newTicketCount,
-          bonus_tickets: newBonusCount,
-          transaction_signature: txSignature
-        })
-        .eq('wallet_address', walletAddress);
+    const tickets = [];
+    for (let i = 0; i < totalTickets; i++) {
+      const isBonus = i >= ticketAmount;
+      tickets.push({
+        draw_id: drawId,
+        wallet_address: walletAddress,
+        ticket_code: generateTicketCode(i, isBonus),
+        is_bonus: isBonus,
+        transaction_signature: txSignature,
+        referral_code: referralCode?.toUpperCase() || null
+      });
+    }
 
-      if (updateError) {
-        console.error('Error updating tickets:', updateError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to update tickets' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    const { error: ticketsError } = await supabase
+      .from('lottery_tickets')
+      .insert(tickets);
 
-      console.log(`Updated tickets for ${walletAddress}: ${newTicketCount} tickets, ${newBonusCount} bonus`);
-
+    if (ticketsError) {
+      console.error('Error inserting lottery tickets:', ticketsError);
       return new Response(
-        JSON.stringify({ 
-          success: true,
-          ticketCount: newTicketCount,
-          bonusTickets: newBonusCount,
-          message: `Successfully purchased ${ticketAmount} ticket(s)${bonusTickets > 0 ? ` + ${bonusTickets} bonus` : ''}!`
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } else {
-      // Insert new record
-      const { error: insertError } = await supabase
-        .from('tickets')
-        .insert({
-          wallet_address: walletAddress,
-          ticket_count: ticketAmount,
-          bonus_tickets: bonusTickets,
-          transaction_signature: txSignature
-        });
-
-      if (insertError) {
-        console.error('Error inserting tickets:', insertError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to create ticket record' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      console.log(`Created ticket record for ${walletAddress}: ${ticketAmount} tickets, ${bonusTickets} bonus`);
-
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          ticketCount: ticketAmount,
-          bonusTickets: bonusTickets,
-          message: `Successfully purchased ${ticketAmount} ticket(s)${bonusTickets > 0 ? ` + ${bonusTickets} bonus` : ''}!`
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Failed to create lottery tickets' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log(`✅ Created ${totalTickets} lottery tickets for ${walletAddress}`);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        ticketCount: ticketAmount,
+        bonusTickets: bonusTickets,
+        totalTickets: totalTickets,
+        message: `Successfully purchased ${ticketAmount} ticket(s)${bonusTickets > 0 ? ` + ${bonusTickets} bonus` : ''}!`
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('Error processing purchase:', error);

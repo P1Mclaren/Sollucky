@@ -280,8 +280,8 @@ serve(async (req) => {
 
     console.log(`🔑 Using wallet for ${draw.lottery_type} lottery`);
 
-    // Connect to mainnet
-    const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+    // Connect to mainnet using Helius for better reliability
+    const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=28a67cf7-a73e-4a20-b834-086145db006f', 'confirmed');
     const fromKeypair = Keypair.fromSecretKey(bs58.decode(privateKeyStr));
     
     console.log(`   From: ${fromKeypair.publicKey.toString()}`);

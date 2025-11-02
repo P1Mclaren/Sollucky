@@ -79,8 +79,8 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
     let signature: string | undefined;
 
     try {
-      // Create Solana connection - MAINNET ONLY
-      const network = 'https://api.mainnet-beta.solana.com';
+      // Create Solana connection - MAINNET ONLY using Helius for better reliability
+      const network = 'https://mainnet.helius-rpc.com/?api-key=28a67cf7-a73e-4a20-b834-086145db006f';
       console.log('🌐 Connecting to mainnet:', network);
       const connection = new Connection(network, 'confirmed');
 

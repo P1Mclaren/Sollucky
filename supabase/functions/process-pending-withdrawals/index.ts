@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SOLANA_NETWORK = 'https://api.mainnet-beta.solana.com';
+const SOLANA_NETWORK = 'https://mainnet.helius-rpc.com/?api-key=28a67cf7-a73e-4a20-b834-086145db006f';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {

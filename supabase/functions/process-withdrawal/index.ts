@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 const MINIMUM_WITHDRAWAL_LAMPORTS = 50000000; // ~$10 worth of SOL (0.05 SOL at ~$200/SOL)
-const SOLANA_NETWORK = 'https://api.mainnet-beta.solana.com';
+const SOLANA_NETWORK = 'https://mainnet.helius-rpc.com/?api-key=28a67cf7-a73e-4a20-b834-086145db006f';
 
 serve(async (req) => {
   console.log('=== PROCESS-WITHDRAWAL FUNCTION STARTED ===');

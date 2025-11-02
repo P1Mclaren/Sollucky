@@ -42,7 +42,8 @@ function WalletConnectionManager({ children }: { children: React.ReactNode }) {
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const network = WalletAdapterNetwork.Mainnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  // Use Helius RPC for better rate limits and reliability
+  const endpoint = useMemo(() => 'https://mainnet.helius-rpc.com/?api-key=28a67cf7-a73e-4a20-b834-086145db006f', []);
   
   const wallets = useMemo(
     () => [

@@ -17,7 +17,8 @@ export interface NetworkConfig {
  */
 export function getNetworkConfig(isTestMode: boolean): NetworkConfig {
   const network: SolanaNetwork = 'mainnet-beta';
-  const rpcEndpoint = 'https://api.mainnet-beta.solana.com';
+  // Use Helius free tier RPC for better rate limits and reliability
+  const rpcEndpoint = 'https://mainnet.helius-rpc.com/?api-key=28a67cf7-a73e-4a20-b834-086145db006f';
 
   return {
     rpcEndpoint,

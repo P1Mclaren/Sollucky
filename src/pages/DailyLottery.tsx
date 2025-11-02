@@ -13,87 +13,93 @@ const DailyLottery = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8 space-y-12">
-        <div className="text-center space-y-4 py-12">
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        <div className="text-center space-y-3 py-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-full">
             <Rocket className="w-5 h-5 text-primary" />
             <span className="font-orbitron text-primary font-semibold">Daily Lottery</span>
           </div>
-          <h1 className="font-orbitron text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          <h1 className="font-orbitron text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
             Daily Draws
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             New winner every day! Quick, exciting, and rewarding!
           </p>
         </div>
 
-        {isPreOrder && (
-          <div className="max-w-2xl mx-auto">
-            <LotteryCountdown targetDate={launchDate} />
-          </div>
-        )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Countdown */}
+            {isPreOrder && <LotteryCountdown targetDate={launchDate} />}
 
-        <div className="max-w-md mx-auto">
-          <div className="bg-card border border-primary/30 rounded-2xl p-8 text-center space-y-4">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-              <Trophy className="w-10 h-10 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-orbitron text-4xl font-bold text-primary">70%</h3>
-              <p className="text-muted-foreground text-lg">Winner Takes All</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-2xl mx-auto">
-          <TicketPurchase 
-            lotteryType="daily" 
-            isPreOrder={isPreOrder}
-            solPrice={solPrice}
-            showReferralInput={false}
-          />
-        </div>
-
-        <div className="max-w-4xl mx-auto bg-card border border-primary/30 rounded-2xl p-8 space-y-6">
-          <h2 className="font-orbitron text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary" />
-            How It Works
-          </h2>
-          
-          <div className="space-y-4 text-muted-foreground">
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold">1</div>
+            {/* Prize Display */}
+            <div className="bg-card border border-primary/30 rounded-xl p-6 text-center space-y-3">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Trophy className="w-8 h-8 text-primary" />
+              </div>
               <div>
-                <h3 className="font-semibold text-foreground mb-1">Purchase Tickets</h3>
-                <p>Each ticket costs $1 USD (converted to SOL). Buy as many as you like!</p>
+                <h3 className="font-orbitron text-3xl font-bold text-primary">70%</h3>
+                <p className="text-muted-foreground">Winner Takes All</p>
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold">2</div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">Daily Winner</h3>
-                <p>One lucky winner is chosen every single day. More tickets = better chances!</p>
-              </div>
-            </div>
+            {/* Rules Section */}
+            <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-4">
+              <h2 className="font-orbitron text-xl font-bold flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                How It Works
+              </h2>
+              
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <div className="flex gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">1</div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Purchase Tickets</h3>
+                    <p className="text-xs">$1 USD each (converted to SOL)</p>
+                  </div>
+                </div>
 
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold">3</div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">70% Prize Pool</h3>
-                <p>The winner receives 70% of all ticket sales for that day</p>
-              </div>
-            </div>
+                <div className="flex gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">2</div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Daily Winner</h3>
+                    <p className="text-xs">One winner chosen every day</p>
+                  </div>
+                </div>
 
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold">4</div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">Fast & Fair</h3>
-                <p>Automated on-chain selection ensures fairness. Prizes sent instantly!</p>
+                <div className="flex gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">3</div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">70% Prize Pool</h3>
+                    <p className="text-xs">Winner gets 70% of daily sales</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">4</div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Fast & Fair</h3>
+                    <p className="text-xs">Auto on-chain selection, instant payout</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Right Column - Ticket Purchase */}
+          <div>
+            <TicketPurchase 
+              lotteryType="daily" 
+              isPreOrder={isPreOrder}
+              solPrice={solPrice}
+              showReferralInput={false}
+            />
+          </div>
         </div>
+
+        {/* Spacer for mobile */}
+        <div className="lg:hidden h-4"></div>
       </main>
 
       <Footer />

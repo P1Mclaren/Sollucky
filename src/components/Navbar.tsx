@@ -67,11 +67,6 @@ export function Navbar() {
               DEVNET
             </Badge>
           )}
-          {!isTestMode && (
-            <Badge variant="outline" className="bg-green-500/20 text-green-500 border-green-500 text-xs">
-              PROD
-            </Badge>
-          )}
         </Link>
         
         <div className="hidden md:flex items-center gap-8">
@@ -108,7 +103,7 @@ export function Navbar() {
                     isActive('/admin-v3') ? 'text-primary' : 'text-foreground hover:text-primary'
                   }`}
                 >
-                  Admin v3
+                  Admin
                 </Link>
               )}
             </>

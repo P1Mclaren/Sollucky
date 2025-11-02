@@ -278,7 +278,7 @@ export default function AdminV3() {
       <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
-            Admin Control Panel v3.0
+            Admin Control Panel
           </h1>
           <p className="text-muted-foreground text-sm">
             Manage test mode and lottery testing operations

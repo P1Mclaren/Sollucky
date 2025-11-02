@@ -299,15 +299,9 @@ const ReferralsV3 = () => {
         },
       });
 
-      // Check for success even if there's an error object
-      if (data?.success) {
-        toast.success(`Successfully withdrew ${pendingSol.toFixed(4)} SOL! Check your wallet.`);
-      } else if (error) {
-        console.error('Withdrawal error:', error);
-        toast.error('Withdrawal request failed. Please refresh to see if it went through.');
-      }
-      
-      // Always reload data to see actual state
+      if (error) throw error;
+
+      toast.success("Withdrawal request submitted successfully!");
       await loadAllData();
     } catch (error: any) {
       console.error("Withdrawal error:", error);

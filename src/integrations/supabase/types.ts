@@ -119,56 +119,6 @@ export type Database = {
         }
         Relationships: []
       }
-      lottery_fund_balances: {
-        Row: {
-          created_at: string
-          creator_share_lamports: number
-          draw_id: string | null
-          id: string
-          lottery_pool_lamports: number
-          lottery_type: string
-          operator_share_lamports: number
-          paid_to_winners_lamports: number
-          referrer_share_lamports: number
-          total_collected_lamports: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          creator_share_lamports?: number
-          draw_id?: string | null
-          id?: string
-          lottery_pool_lamports?: number
-          lottery_type: string
-          operator_share_lamports?: number
-          paid_to_winners_lamports?: number
-          referrer_share_lamports?: number
-          total_collected_lamports?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          creator_share_lamports?: number
-          draw_id?: string | null
-          id?: string
-          lottery_pool_lamports?: number
-          lottery_type?: string
-          operator_share_lamports?: number
-          paid_to_winners_lamports?: number
-          referrer_share_lamports?: number
-          total_collected_lamports?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lottery_fund_balances_draw_id_fkey"
-            columns: ["draw_id"]
-            isOneToOne: false
-            referencedRelation: "lottery_draws"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       lottery_tickets: {
         Row: {
           created_at: string | null

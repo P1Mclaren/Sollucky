@@ -249,12 +249,32 @@ serve(async (req) => {
     if (referralCode) {
       console.log(`Processing referral code: ${referralCode.toUpperCase()}`);
       
+      // Check total tickets bought by user (2500 limit for bonus)
+      const { data: userTickets, error: ticketCheckError } = await supabase
+        .from('lottery_tickets')
+        .select('id', { count: 'exact' })
+        .eq('wallet_address', walletAddress);
+      
+      const totalTicketsBought = userTickets?.length || 0;
+      console.log(`User has bought ${totalTicketsBought} tickets total`);
+      
+      if (totalTicketsBought >= 2500) {
+        console.log('User has reached 2500 ticket limit, bonus code not applicable');
+        return new Response(
+          JSON.stringify({ 
+            error: 'You have reached the 2500 ticket limit and can no longer use bonus codes',
+            code: 'BONUS_LIMIT_REACHED'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       // Check if it's the operator code
       if (referralCode.toUpperCase() === OPERATOR_REFERRAL_CODE) {
         referralType = 'operator';
         operatorFundsLamports = Math.floor(totalLamports * FUND_SPLIT_PERCENTAGE);
         lotteryFundsLamports = totalLamports - operatorFundsLamports;
-        bonusTickets = Math.floor(ticketAmount * 0.1);
+        bonusTickets = ticketAmount; // x2 bonus (double the tickets)
         console.log('Operator code applied');
       } else {
         // Check for user-created referral code
@@ -284,7 +304,7 @@ serve(async (req) => {
           referralType = 'creator';
           creatorFundsLamports = Math.floor(totalLamports * FUND_SPLIT_PERCENTAGE);
           lotteryFundsLamports = totalLamports - creatorFundsLamports;
-          bonusTickets = Math.floor(ticketAmount * 0.1);
+          bonusTickets = ticketAmount; // x2 bonus (double the tickets)
           
           // Calculate referrer earnings (25% of total)
           referrerEarningsLamports = Math.floor(totalLamports * 0.25);

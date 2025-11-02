@@ -23,6 +23,11 @@ export default function Profile() {
     weekly: number;
     daily: number;
   }>({ monthly: 0, weekly: 0, daily: 0 });
+  const [bonusTickets, setBonusTickets] = useState<{
+    monthly: number;
+    weekly: number;
+    daily: number;
+  }>({ monthly: 0, weekly: 0, daily: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -51,20 +56,23 @@ export default function Profile() {
 
         if (draws) {
           const ticketCounts = { monthly: 0, weekly: 0, daily: 0 };
+          const bonusCounts = { monthly: 0, weekly: 0, daily: 0 };
           
           for (const draw of draws) {
             const { data: userTickets } = await supabase
               .from('lottery_tickets')
-              .select('id')
+              .select('id, is_bonus')
               .eq('draw_id', draw.id)
               .eq('wallet_address', walletAddress);
 
             if (userTickets) {
               ticketCounts[draw.lottery_type as keyof typeof ticketCounts] += userTickets.length;
+              bonusCounts[draw.lottery_type as keyof typeof bonusCounts] += userTickets.filter(t => t.is_bonus).length;
             }
           }
 
           setTickets(ticketCounts);
+          setBonusTickets(bonusCounts);
         }
       } catch (error) {
         console.error('Error loading profile data:', error);
@@ -119,6 +127,27 @@ export default function Profile() {
                 </div>
               </div>
             </Card>
+
+            {/* Bonus Tickets Summary */}
+            {(bonusTickets.monthly > 0 || bonusTickets.weekly > 0 || bonusTickets.daily > 0) && (
+              <Card className="p-6 mb-8 bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-sm border-primary/30">
+                <h3 className="font-orbitron text-xl font-bold mb-4 text-primary">🎁 Bonus Tickets Earned</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Monthly</p>
+                    <p className="text-2xl font-bold text-primary">{bonusTickets.monthly}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Weekly</p>
+                    <p className="text-2xl font-bold text-accent">{bonusTickets.weekly}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Daily</p>
+                    <p className="text-2xl font-bold text-primary">{bonusTickets.daily}</p>
+                  </div>
+                </div>
+              </Card>
+            )}
 
             {/* Tickets Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

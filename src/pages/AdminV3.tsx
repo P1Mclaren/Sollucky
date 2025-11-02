@@ -13,6 +13,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useTestMode } from '@/contexts/TestModeContext';
 import { Play, Square, RotateCcw, Activity, Rocket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
+const LAMPORTS_PER_SOL = 1000000000;
 
 interface TestLotteryRun {
   id: string;
@@ -31,6 +35,30 @@ interface AuditLog {
   created_at: string;
 }
 
+interface FundSplit {
+  id: string;
+  transaction_signature: string;
+  wallet_address: string;
+  referral_code: string | null;
+  referral_type: string;
+  total_lamports: number;
+  creator_funds_lamports: number;
+  operator_funds_lamports: number;
+  lottery_funds_lamports: number;
+  referrer_earnings_lamports: number;
+  created_at: string;
+}
+
+interface WithdrawalRequest {
+  id: string;
+  wallet_address: string;
+  amount_lamports: number;
+  status: string;
+  created_at: string;
+  processed_at: string | null;
+  transaction_signature: string | null;
+}
+
 export default function AdminV3() {
   const { publicKey } = useWallet();
   const { toast } = useToast();
@@ -43,6 +71,14 @@ export default function AdminV3() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingTestModeState, setPendingTestModeState] = useState(false);
   const [testDuration, setTestDuration] = useState(5);
+  
+  // Financial dashboard state
+  const [fundSplits, setFundSplits] = useState<FundSplit[]>([]);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+  const [totalCreatorFunds, setTotalCreatorFunds] = useState(0);
+  const [totalOperatorFunds, setTotalOperatorFunds] = useState(0);
+  const [totalLotteryFunds, setTotalLotteryFunds] = useState(0);
+  const [totalReferrerEarnings, setTotalReferrerEarnings] = useState(0);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -96,9 +132,55 @@ export default function AdminV3() {
         .limit(50);
 
       setAuditLogs(logs || []);
+
+      // Fetch financial data
+      await fetchAdminData();
     } catch (error) {
       console.error('Error fetching data:', error);
     }
+  };
+
+  const fetchAdminData = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-data', {
+        body: {}
+      });
+
+      if (error) {
+        console.error('Error fetching admin data:', error);
+        return;
+      }
+
+      const splits = data.fundSplits;
+      const withdrawalData = data.withdrawals;
+
+      setFundSplits(splits || []);
+      setWithdrawals(withdrawalData || []);
+      
+      // Calculate totals
+      let creatorTotal = 0;
+      let operatorTotal = 0;
+      let lotteryTotal = 0;
+      let referrerTotal = 0;
+
+      splits?.forEach((split: FundSplit) => {
+        creatorTotal += Number(split.creator_funds_lamports) / LAMPORTS_PER_SOL;
+        operatorTotal += Number(split.operator_funds_lamports) / LAMPORTS_PER_SOL;
+        lotteryTotal += Number(split.lottery_funds_lamports) / LAMPORTS_PER_SOL;
+        referrerTotal += Number(split.referrer_earnings_lamports) / LAMPORTS_PER_SOL;
+      });
+
+      setTotalCreatorFunds(creatorTotal);
+      setTotalOperatorFunds(operatorTotal);
+      setTotalLotteryFunds(lotteryTotal);
+      setTotalReferrerEarnings(referrerTotal);
+    } catch (error) {
+      console.error('Error in fetchAdminData:', error);
+    }
+  };
+
+  const lamportsToSol = (lamports: number) => {
+    return (lamports / LAMPORTS_PER_SOL).toFixed(4);
   };
 
   const handleToggleTestMode = async (enabled: boolean) => {
@@ -534,6 +616,151 @@ export default function AdminV3() {
             </CardContent>
           </Card>
         )}
+
+        {/* Financial Overview */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Financial Overview
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-card border border-primary/30 rounded-xl p-5">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Creator Funds</h3>
+              <p className="font-orbitron text-2xl font-bold text-primary mb-1">{totalCreatorFunds.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">30% from creator codes</p>
+            </div>
+
+            <div className="bg-card border border-accent/30 rounded-xl p-5">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Operator Funds</h3>
+              <p className="font-orbitron text-2xl font-bold text-accent mb-1">{totalOperatorFunds.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">30% from BONUS2025</p>
+            </div>
+
+            <div className="bg-card border border-primary/30 rounded-xl p-5">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Lottery Funds</h3>
+              <p className="font-orbitron text-2xl font-bold text-primary mb-1">{totalLotteryFunds.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">70% of all purchases</p>
+            </div>
+
+            <div className="bg-card border border-accent/30 rounded-xl p-5">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Referrer Earnings</h3>
+              <p className="font-orbitron text-2xl font-bold text-accent mb-1">{totalReferrerEarnings.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">25% to referrers</p>
+            </div>
+          </div>
+
+          <Tabs defaultValue="transactions" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="transactions">Transactions</TabsTrigger>
+              <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="transactions">
+              <Card className="border-primary/30">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">All Ticket Purchases</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border/50">
+                          <TableHead className="text-xs">Date</TableHead>
+                          <TableHead className="text-xs">Wallet</TableHead>
+                          <TableHead className="text-xs">Code</TableHead>
+                          <TableHead className="text-xs">Type</TableHead>
+                          <TableHead className="text-xs">Total</TableHead>
+                          <TableHead className="text-xs">Creator</TableHead>
+                          <TableHead className="text-xs">Operator</TableHead>
+                          <TableHead className="text-xs">Lottery</TableHead>
+                          <TableHead className="text-xs">Referrer</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {fundSplits.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={9} className="text-center text-sm text-muted-foreground py-8">
+                              No transactions yet
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          fundSplits.map((split) => (
+                            <TableRow key={split.id} className="border-border/50 hover:bg-primary/5">
+                              <TableCell className="text-xs">{new Date(split.created_at).toLocaleDateString()}</TableCell>
+                              <TableCell className="font-mono text-xs">{split.wallet_address.slice(0, 6)}...</TableCell>
+                              <TableCell className="text-xs">{split.referral_code || "-"}</TableCell>
+                              <TableCell>
+                                <Badge 
+                                  variant={split.referral_type === "creator" ? "default" : split.referral_type === "operator" ? "secondary" : "outline"}
+                                  className="text-xs"
+                                >
+                                  {split.referral_type}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-xs font-semibold">{lamportsToSol(split.total_lamports)}</TableCell>
+                              <TableCell className="text-xs text-primary">{lamportsToSol(split.creator_funds_lamports)}</TableCell>
+                              <TableCell className="text-xs text-accent">{lamportsToSol(split.operator_funds_lamports)}</TableCell>
+                              <TableCell className="text-xs text-primary">{lamportsToSol(split.lottery_funds_lamports)}</TableCell>
+                              <TableCell className="text-xs text-accent">{lamportsToSol(split.referrer_earnings_lamports)}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="withdrawals">
+              <Card className="border-accent/30">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Withdrawal Requests</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-border/50">
+                          <TableHead className="text-xs">Date</TableHead>
+                          <TableHead className="text-xs">Wallet</TableHead>
+                          <TableHead className="text-xs">Amount</TableHead>
+                          <TableHead className="text-xs">Status</TableHead>
+                          <TableHead className="text-xs">Processed</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {withdrawals.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
+                              No withdrawal requests yet
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          withdrawals.map((withdrawal) => (
+                            <TableRow key={withdrawal.id} className="border-border/50 hover:bg-accent/5">
+                              <TableCell className="text-xs">{new Date(withdrawal.created_at).toLocaleDateString()}</TableCell>
+                              <TableCell className="font-mono text-xs">{withdrawal.wallet_address.slice(0, 6)}...</TableCell>
+                              <TableCell className="text-xs font-semibold">{lamportsToSol(withdrawal.amount_lamports)} SOL</TableCell>
+                              <TableCell>
+                                <Badge 
+                                  variant={withdrawal.status === "pending" ? "outline" : withdrawal.status === "completed" ? "default" : "destructive"}
+                                  className="text-xs"
+                                >
+                                  {withdrawal.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-xs">{withdrawal.processed_at ? new Date(withdrawal.processed_at).toLocaleDateString() : "-"}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
 
         {/* Audit Log */}
         <Card className="border-primary/20">

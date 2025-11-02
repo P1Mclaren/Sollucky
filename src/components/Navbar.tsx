@@ -81,14 +81,6 @@ export function Navbar() {
           {connected && (
             <>
               <Link
-                to="/profile"
-                className={`text-sm font-medium transition-colors ${
-                  isActive('/profile') ? 'text-primary' : 'text-foreground hover:text-primary'
-                }`}
-              >
-                Profile
-              </Link>
-              <Link
                 to="/referrals"
                 className={`text-sm font-medium transition-colors ${
                   isActive('/referrals') ? 'text-primary' : 'text-foreground hover:text-primary'

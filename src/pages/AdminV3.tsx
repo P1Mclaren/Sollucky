@@ -216,12 +216,18 @@ export default function AdminV3() {
   };
 
   const handleTestDraw = async (lotteryType: 'monthly' | 'weekly' | 'daily') => {
-    if (!publicKey) return;
+    console.log('🎯 Test Draw button clicked for:', lotteryType);
+    if (!publicKey) {
+      console.log('❌ No public key');
+      return;
+    }
 
     try {
+      console.log('🔑 Getting session...');
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
+        console.log('❌ No session found');
         toast({
           title: 'Authentication Required',
           description: 'Please reconnect your wallet to perform admin actions.',
@@ -230,6 +236,7 @@ export default function AdminV3() {
         return;
       }
 
+      console.log('✅ Session found, fetching draw...');
       // Get the active draw for this lottery type
       const { data: draw, error: drawError } = await supabase
         .from('lottery_draws')
@@ -240,7 +247,10 @@ export default function AdminV3() {
         .limit(1)
         .maybeSingle();
 
+      console.log('📊 Draw query result:', { draw, drawError });
+
       if (drawError || !draw) {
+        console.log('❌ No active draw found');
         toast({
           title: 'No Active Draw',
           description: `No active ${lotteryType} lottery draw found. Initialize draws first.`,
@@ -249,6 +259,7 @@ export default function AdminV3() {
         return;
       }
 
+      console.log('🎲 Starting winner draw for draw ID:', draw.id);
       toast({
         title: 'Drawing Winners...',
         description: `Testing automatic winner selection and payouts for ${lotteryType} lottery`,
@@ -261,6 +272,8 @@ export default function AdminV3() {
         }
       });
 
+      console.log('🎉 Draw winners result:', { data, error });
+
       if (error) throw error;
 
       await fetchData();
@@ -270,7 +283,7 @@ export default function AdminV3() {
         description: `${data.winners} winners selected and paid automatically. Check audit log for details.`,
       });
     } catch (error) {
-      console.error('Error running test draw:', error);
+      console.error('❌ Error running test draw:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to run test draw',

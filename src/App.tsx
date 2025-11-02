@@ -4,10 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WalletProvider } from "./components/WalletProvider";
+import { TestModeProvider } from "./contexts/TestModeContext";
+import { TestModeBanner } from "./components/TestModeBanner";
+import { MetaTags } from "./components/MetaTags";
 import Landing from "./pages/Landing";
 import Profile from "./pages/Profile";
 import Referrals from "./pages/Referrals";
 import Admin from "./pages/Admin";
+import AdminV3 from "./pages/AdminV3";
 import NotFound from "./pages/NotFound";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -22,27 +26,32 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <WalletProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/referrals" element={<Referrals />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/monthly" element={<MonthlyLottery />} />
-            <Route path="/weekly" element={<WeeklyLottery />} />
-            <Route path="/daily" element={<DailyLottery />} />
-            <Route path="/wall-of-fame" element={<WallOfFame />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <TestModeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <MetaTags />
+          <BrowserRouter>
+            <TestModeBanner />
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/referrals" element={<Referrals />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin-v3" element={<AdminV3 />} />
+              <Route path="/monthly" element={<MonthlyLottery />} />
+              <Route path="/weekly" element={<WeeklyLottery />} />
+              <Route path="/daily" element={<DailyLottery />} />
+              <Route path="/wall-of-fame" element={<WallOfFame />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </TestModeProvider>
     </WalletProvider>
   </QueryClientProvider>
 );

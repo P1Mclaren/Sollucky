@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          admin_wallet: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          admin_wallet: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          admin_wallet?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       fund_splits: {
         Row: {
           created_at: string
@@ -307,6 +331,57 @@ export type Database = {
           id?: string
           price_usd?: number
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      test_lottery_runs: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          id: string
+          lottery_type: string
+          started_at: string | null
+          status: string
+          stopped_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          lottery_type: string
+          started_at?: string | null
+          status?: string
+          stopped_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          lottery_type?: string
+          started_at?: string | null
+          status?: string
+          stopped_at?: string | null
+        }
+        Relationships: []
+      }
+      test_mode_state: {
+        Row: {
+          id: string
+          is_enabled: boolean
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+          updated_by?: string
         }
         Relationships: []
       }

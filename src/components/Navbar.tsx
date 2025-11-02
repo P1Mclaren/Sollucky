@@ -3,16 +3,19 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Wallet, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from 'react';
+import { useTestMode } from '@/contexts/TestModeContext';
 
 export function Navbar() {
   const location = useLocation();
   const { connected, publicKey, disconnect, select } = useWallet();
   const { setVisible } = useWalletModal();
   const [isAdmin, setIsAdmin] = useState(false);
+  const { isTestMode } = useTestMode();
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
@@ -59,6 +62,16 @@ export function Navbar() {
           <div className="text-2xl font-orbitron font-black text-primary text-glow-purple">
             SOLLUCKY
           </div>
+          {isTestMode && (
+            <Badge variant="outline" className="bg-yellow-500/20 text-yellow-500 border-yellow-500 text-xs">
+              DEVNET
+            </Badge>
+          )}
+          {!isTestMode && (
+            <Badge variant="outline" className="bg-green-500/20 text-green-500 border-green-500 text-xs">
+              PROD
+            </Badge>
+          )}
         </Link>
         
         <div className="hidden md:flex items-center gap-8">
@@ -90,12 +103,12 @@ export function Navbar() {
               </Link>
               {isAdmin && (
                 <Link
-                  to="/admin"
+                  to="/admin-v3"
                   className={`text-sm font-medium transition-colors ${
-                    isActive('/admin') ? 'text-primary' : 'text-foreground hover:text-primary'
+                    isActive('/admin-v3') ? 'text-primary' : 'text-foreground hover:text-primary'
                   }`}
                 >
-                  Admin
+                  Admin v3
                 </Link>
               )}
             </>

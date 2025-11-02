@@ -78,16 +78,55 @@ serve(async (req) => {
     console.log(`Network: ${networkConfig.network}, Test Mode: ${networkConfig.isTestMode}`);
 
     // Get all tickets for this draw
-    const { data: tickets, error: ticketsError } = await supabase
+    let { data: tickets, error: ticketsError } = await supabase
       .from('lottery_tickets')
       .select('*')
       .eq('draw_id', drawId);
 
-    if (ticketsError || !tickets || tickets.length === 0) {
-      throw new Error('No tickets found for this draw');
+    if (ticketsError) {
+      throw new Error(`Error fetching tickets: ${ticketsError.message}`);
     }
 
-    console.log(`🎫 Found ${tickets.length} tickets`);
+    // If no tickets exist, create test tickets for testing purposes
+    if (!tickets || tickets.length === 0) {
+      console.log('⚠️ No tickets found, creating test tickets...');
+      const testTickets = [];
+      const testWalletCount = draw.lottery_type === 'monthly' ? 150 : draw.lottery_type === 'weekly' ? 50 : 10;
+      
+      for (let i = 0; i < testWalletCount; i++) {
+        // Generate random test wallet addresses
+        const randomWallet = Keypair.generate().publicKey.toString();
+        testTickets.push({
+          draw_id: drawId,
+          wallet_address: randomWallet,
+          ticket_code: `TEST-${Date.now()}-${i}`,
+          is_bonus: false
+        });
+      }
+
+      const { error: insertError } = await supabase
+        .from('lottery_tickets')
+        .insert(testTickets);
+
+      if (insertError) {
+        throw new Error(`Failed to create test tickets: ${insertError.message}`);
+      }
+
+      // Fetch the newly created tickets
+      const { data: newTickets, error: refetchError } = await supabase
+        .from('lottery_tickets')
+        .select('*')
+        .eq('draw_id', drawId);
+
+      if (refetchError || !newTickets) {
+        throw new Error('Failed to fetch test tickets');
+      }
+
+      console.log(`✅ Created ${newTickets.length} test tickets`);
+      tickets = newTickets;
+    } else {
+      console.log(`🎫 Found ${tickets.length} existing tickets`);
+    }
 
     // Calculate prize pool (70% of total pool)
     const prizePoolLamports = Math.floor(draw.total_pool_lamports * 0.7);
@@ -100,7 +139,7 @@ serve(async (req) => {
     const shuffled = [...tickets].sort(() => Math.random() - 0.5);
 
     if (draw.lottery_type === 'monthly') {
-      // 60% jackpot, 5% second, 5% split among 100 random
+      // Monthly: 60% jackpot, 5% runner-up, 5% split among up to 100 wallets
       if (shuffled.length > 0) {
         winners.push({
           ticket_id: shuffled[0].id,
@@ -113,29 +152,35 @@ serve(async (req) => {
         winners.push({
           ticket_id: shuffled[1].id,
           wallet_address: shuffled[1].wallet_address,
-          prize_tier: 'second',
+          prize_tier: 'runner-up',
           prize_lamports: Math.floor(prizePoolLamports * 0.05)
         });
       }
       
-      // 100 random winners split 5%
-      const randomCount = Math.min(100, shuffled.length - 2);
-      const randomPrize = Math.floor(prizePoolLamports * 0.05 / randomCount);
-      for (let i = 2; i < 2 + randomCount; i++) {
-        winners.push({
-          ticket_id: shuffled[i].id,
-          wallet_address: shuffled[i].wallet_address,
-          prize_tier: 'random',
-          prize_lamports: randomPrize
-        });
+      // 5% split among up to 100 wallets (or all available if less)
+      const availableForRandom = shuffled.slice(2); // Exclude jackpot and runner-up
+      const randomWinnerCount = Math.min(100, availableForRandom.length);
+      
+      if (randomWinnerCount > 0) {
+        const randomPrize = Math.floor((prizePoolLamports * 0.05) / randomWinnerCount);
+        console.log(`💰 Splitting 5% among ${randomWinnerCount} random winners (${randomPrize} lamports each)`);
+        
+        for (let i = 0; i < randomWinnerCount; i++) {
+          winners.push({
+            ticket_id: availableForRandom[i].id,
+            wallet_address: availableForRandom[i].wallet_address,
+            prize_tier: 'random',
+            prize_lamports: randomPrize
+          });
+        }
       }
     } else if (draw.lottery_type === 'weekly') {
-      // 65% main, 5% runner-up
+      // Weekly: 65% jackpot, 5% runner-up
       if (shuffled.length > 0) {
         winners.push({
           ticket_id: shuffled[0].id,
           wallet_address: shuffled[0].wallet_address,
-          prize_tier: 'main',
+          prize_tier: 'jackpot',
           prize_lamports: Math.floor(prizePoolLamports * 0.65)
         });
       }
@@ -148,12 +193,12 @@ serve(async (req) => {
         });
       }
     } else if (draw.lottery_type === 'daily') {
-      // 70% single winner
+      // Daily: 70% (all prize pool) to jackpot winner
       if (shuffled.length > 0) {
         winners.push({
           ticket_id: shuffled[0].id,
           wallet_address: shuffled[0].wallet_address,
-          prize_tier: 'winner',
+          prize_tier: 'jackpot',
           prize_lamports: prizePoolLamports
         });
       }

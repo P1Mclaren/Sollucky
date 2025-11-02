@@ -16,15 +16,42 @@ serve(async (req) => {
   }
 
   try {
-    const { walletAddress } = await req.json();
-    console.log('📝 Admin data request from:', walletAddress);
+    // Extract wallet address from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('❌ Missing Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Missing authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // Use service role to check admin role and fetch admin data
-    console.log('🔌 Initializing Supabase with service role...');
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('❌ Invalid token:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const walletAddress = user.user_metadata?.wallet_address;
+    if (!walletAddress) {
+      console.error('❌ No wallet address in token');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No wallet address' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('📝 Admin data request from:', walletAddress);
 
     // Verify admin role using has_role function
     console.log('🔍 Verifying admin role...');

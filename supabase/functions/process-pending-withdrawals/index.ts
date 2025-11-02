@@ -17,13 +17,38 @@ Deno.serve(async (req) => {
   try {
     console.log('Processing pending withdrawals request received');
 
-    const { adminWallet } = await req.json();
-
-    if (!adminWallet) {
-      console.error('Missing adminWallet');
+    // Extract wallet address from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing Authorization header');
       return new Response(
-        JSON.stringify({ error: 'Admin wallet address required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unauthorized - Missing authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('Invalid token:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const adminWallet = user.user_metadata?.wallet_address;
+    if (!adminWallet) {
+      console.error('No wallet address in token');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No wallet address' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

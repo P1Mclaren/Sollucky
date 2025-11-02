@@ -112,7 +112,6 @@ export default function AdminV3() {
     try {
       const { data, error } = await supabase.functions.invoke('toggle-test-mode', {
         body: {
-          adminWallet: publicKey.toString(),
           isEnabled: pendingTestModeState,
         },
       });
@@ -146,7 +145,6 @@ export default function AdminV3() {
     try {
       const { error } = await supabase.functions.invoke('control-test-lottery', {
         body: {
-          adminWallet: publicKey.toString(),
           lotteryType,
           action: 'start',
           durationMinutes: testDuration,
@@ -177,7 +175,6 @@ export default function AdminV3() {
     try {
       const { error } = await supabase.functions.invoke('control-test-lottery', {
         body: {
-          adminWallet: publicKey.toString(),
           lotteryType,
           action: 'stop',
         },
@@ -210,9 +207,7 @@ export default function AdminV3() {
 
     try {
       const { error } = await supabase.functions.invoke('reset-test-data', {
-        body: {
-          adminWallet: publicKey.toString(),
-        },
+        body: {},
       });
 
       if (error) throw error;

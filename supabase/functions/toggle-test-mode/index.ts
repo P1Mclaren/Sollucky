@@ -12,12 +12,39 @@ serve(async (req) => {
   }
 
   try {
-    const { adminWallet, isEnabled } = await req.json();
+    // Extract wallet address from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Missing authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const adminWallet = user.user_metadata?.wallet_address;
+    if (!adminWallet) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No wallet address' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { isEnabled } = await req.json();
 
     // Verify admin role
     const { data: hasAdminRole } = await supabaseClient.rpc('has_role', {

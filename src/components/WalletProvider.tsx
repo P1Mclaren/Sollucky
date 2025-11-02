@@ -3,18 +3,20 @@ import { ConnectionProvider, WalletProvider as SolanaWalletProvider } from '@sol
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
-import { useMemo, useEffect, useCallback } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useWalletAuth } from '@/hooks/useWalletAuth';
 
 // Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
 // Import custom wallet styles AFTER default styles to override them
 import '../styles/wallet-custom.css';
 
-// Track wallet connections in database
+// Track wallet connections and authenticate
 function WalletConnectionManager({ children }: { children: React.ReactNode }) {
   const { publicKey, connected, wallet } = useWallet();
+  const { session } = useWalletAuth();
 
   useEffect(() => {
     if (connected && publicKey) {

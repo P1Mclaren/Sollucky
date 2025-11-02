@@ -82,7 +82,7 @@ const Admin = () => {
     try {
       // Fetch admin data via secure Edge Function
       const { data, error } = await supabase.functions.invoke('admin-data', {
-        body: { walletAddress: publicKey.toString() }
+        body: {}
       });
 
       if (error) {

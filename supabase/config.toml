@@ -1,10 +1,13 @@
 project_id = "agzctvizkhkktnuodoxa"
 
-[functions.admin-data]
+[functions.auth-wallet]
 verify_jwt = false
 
+[functions.admin-data]
+verify_jwt = true
+
 [functions.process-pending-withdrawals]
-verify_jwt = false
+verify_jwt = true
 
 [functions.process-withdrawal]
 verify_jwt = false
@@ -16,16 +19,16 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.initialize-draws]
-verify_jwt = false
+verify_jwt = true
 
 [functions.draw-winners]
-verify_jwt = false
+verify_jwt = true
 
 [functions.toggle-test-mode]
-verify_jwt = false
+verify_jwt = true
 
 [functions.control-test-lottery]
-verify_jwt = false
+verify_jwt = true
 
 [functions.reset-test-data]
-verify_jwt = false
+verify_jwt = true

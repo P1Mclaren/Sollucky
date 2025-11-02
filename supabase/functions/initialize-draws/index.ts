@@ -6,8 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Launch date: January 13, 2025 at 6 PM CET
-const LAUNCH_DATE = new Date('2025-01-13T18:00:00+01:00');
+// Launch date: November 15, 2025 at 6 PM CET
+const LAUNCH_DATE = new Date('2025-11-15T18:00:00+01:00');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

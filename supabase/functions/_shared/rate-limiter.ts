@@ -28,9 +28,9 @@ export async function checkRateLimit(
 
   // Count recent requests
   const { data: recentLogs, error } = await supabaseClient
-    .from('admin_action_logs')
+    .from('audit_log')
     .select('id')
-    .eq('wallet_address', config.identifier)
+    .eq('admin_wallet', config.identifier)
     .gte('created_at', windowStart.toISOString());
 
   if (error) {

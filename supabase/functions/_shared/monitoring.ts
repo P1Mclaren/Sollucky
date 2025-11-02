@@ -16,7 +16,7 @@ export interface SecurityEvent {
 }
 
 /**
- * Log security-relevant events to admin_action_logs
+ * Log security-relevant events to audit_log
  */
 export async function logSecurityEvent(
   supabaseClient: any,
@@ -24,11 +24,11 @@ export async function logSecurityEvent(
 ): Promise<void> {
   try {
     const { error } = await supabaseClient
-      .from('admin_action_logs')
+      .from('audit_log')
       .insert({
-        wallet_address: event.walletAddress,
+        admin_wallet: event.walletAddress,
         action_type: event.eventType,
-        action_data: {
+        action_details: {
           level: event.level,
           ...event.details,
           ip: event.ipAddress

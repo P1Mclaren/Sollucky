@@ -14,7 +14,7 @@ const WallOfFame = () => {
           *,
           lottery_draws!inner(lottery_type, draw_date)
         `)
-        .is('paid_at', null)
+        .eq('prize_tier', 'jackpot')
         .order('created_at', { ascending: false })
         .limit(50);
 

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Connection, PublicKey, Transaction, SystemProgram, Keypair, sendAndConfirmTransaction } from "https://esm.sh/@solana/web3.js@1.87.6";
+import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from "https://esm.sh/@solana/web3.js@1.87.6";
 import nacl from "https://esm.sh/tweetnacl@1.0.3";
 import bs58 from "https://esm.sh/bs58@5.0.0";
 
@@ -163,7 +163,8 @@ serve(async (req) => {
     
     try {
       console.log('📝 Creating Solana transaction...');
-      // Create and send transaction
+      const { blockhash } = await connection.getLatestBlockhash();
+      
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: fromKeypair.publicKey,
@@ -171,16 +172,19 @@ serve(async (req) => {
           lamports: BigInt(amountLamports),
         })
       );
+      
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = fromKeypair.publicKey;
 
       console.log('✍️ Signing and sending transaction...');
-      txSignature = await sendAndConfirmTransaction(
-        connection,
-        transaction,
-        [fromKeypair]
-      );
+      transaction.sign(fromKeypair);
+      
+      // Send transaction without confirmation (WebSocket doesn't work in Deno)
+      txSignature = await connection.sendRawTransaction(transaction.serialize());
 
-      console.log(`✅ Transaction successful!`);
+      console.log(`✅ Transaction sent successfully!`);
       console.log(`   Signature: ${txSignature}`);
+      console.log(`   Note: Transaction confirmation will happen on Solana network`);
     } catch (txError) {
       console.error('❌ Transaction failed:', txError);
       console.error('   Error details:', txError instanceof Error ? txError.message : 'Unknown error');

@@ -56,9 +56,10 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
 
     if (!draw) {
       toast({
-        title: 'No active draw',
-        description: 'There is no active lottery draw at the moment',
+        title: 'No active lottery draw',
+        description: 'Admin must initialize lottery draws first. Go to /admin-v3 and click "Initialize Lottery Draws" (must be in production mode).',
         variant: 'destructive',
+        duration: 8000,
       });
       return;
     }

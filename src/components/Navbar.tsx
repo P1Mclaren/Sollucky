@@ -113,11 +113,14 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {connected && publicKey ? (
             <div className="flex items-center gap-2">
-              <div className="hidden sm:block px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
+              <Link 
+                to="/profile"
+                className="hidden sm:block px-3 py-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 transition-colors cursor-pointer"
+              >
                 <code className="text-xs font-mono text-primary">
                   {publicKey.toString().slice(0, 4)}...{publicKey.toString().slice(-4)}
                 </code>
-              </div>
+              </Link>
               <Button
                 onClick={handleDisconnect}
                 variant="outline"

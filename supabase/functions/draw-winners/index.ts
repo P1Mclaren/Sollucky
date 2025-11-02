@@ -76,57 +76,86 @@ serve(async (req) => {
 
     console.log(`🎲 Drawing winners for ${draw.lottery_type} lottery (Draw #${drawId})`);
     console.log(`Network: ${networkConfig.network}, Test Mode: ${networkConfig.isTestMode}`);
+    console.log(`Draw details:`, JSON.stringify(draw, null, 2));
 
     // Get all tickets for this draw
+    console.log(`🔍 Querying tickets for draw_id: ${drawId}`);
     let { data: tickets, error: ticketsError } = await supabase
       .from('lottery_tickets')
       .select('*')
       .eq('draw_id', drawId);
+    
+    console.log(`Ticket query result - Count: ${tickets?.length || 0}, Error:`, ticketsError);
 
     if (ticketsError) {
       throw new Error(`Error fetching tickets: ${ticketsError.message}`);
     }
 
-    // If no tickets exist, create test tickets for testing purposes
+    // If no tickets exist for this draw, try to use tickets from another draw of the same type for testing
     if (!tickets || tickets.length === 0) {
-      console.log('⚠️ No tickets found, creating test tickets...');
-      const testTickets = [];
-      const testWalletCount = draw.lottery_type === 'monthly' ? 150 : draw.lottery_type === 'weekly' ? 50 : 10;
+      console.log('⚠️ No tickets found for this draw, looking for tickets from other draws...');
       
-      for (let i = 0; i < testWalletCount; i++) {
-        // Generate random test wallet addresses
-        const randomWallet = Keypair.generate().publicKey.toString();
-        testTickets.push({
-          draw_id: drawId,
-          wallet_address: randomWallet,
-          ticket_code: `TEST-${Date.now()}-${i}`,
-          is_bonus: false
-        });
-      }
-
-      const { error: insertError } = await supabase
+      const { data: otherDrawTickets } = await supabase
         .from('lottery_tickets')
-        .insert(testTickets);
+        .select('*, lottery_draws!inner(lottery_type)')
+        .eq('lottery_draws.lottery_type', draw.lottery_type)
+        .limit(200);
 
-      if (insertError) {
-        throw new Error(`Failed to create test tickets: ${insertError.message}`);
+      if (otherDrawTickets && otherDrawTickets.length > 0) {
+        console.log(`✅ Found ${otherDrawTickets.length} tickets from other ${draw.lottery_type} draws, reassigning to current draw`);
+        
+        // Update these tickets to belong to the current draw for testing
+        const ticketIds = otherDrawTickets.map(t => t.id);
+        await supabase
+          .from('lottery_tickets')
+          .update({ draw_id: drawId })
+          .in('id', ticketIds);
+
+        // Fetch the reassigned tickets
+        const { data: reassignedTickets } = await supabase
+          .from('lottery_tickets')
+          .select('*')
+          .eq('draw_id', drawId);
+
+        tickets = reassignedTickets || [];
+      } else {
+        console.log('⚠️ No tickets found anywhere, creating test tickets...');
+        const testTickets = [];
+        const testWalletCount = draw.lottery_type === 'monthly' ? 150 : draw.lottery_type === 'weekly' ? 50 : 10;
+        
+        for (let i = 0; i < testWalletCount; i++) {
+          const randomWallet = Keypair.generate().publicKey.toString();
+          testTickets.push({
+            draw_id: drawId,
+            wallet_address: randomWallet,
+            ticket_code: `TEST-${Date.now()}-${i}`,
+            is_bonus: false
+          });
+        }
+
+        const { error: insertError } = await supabase
+          .from('lottery_tickets')
+          .insert(testTickets);
+
+        if (insertError) {
+          throw new Error(`Failed to create test tickets: ${insertError.message}`);
+        }
+
+        const { data: newTickets } = await supabase
+          .from('lottery_tickets')
+          .select('*')
+          .eq('draw_id', drawId);
+
+        tickets = newTickets || [];
+        console.log(`✅ Created ${tickets.length} test tickets`);
       }
-
-      // Fetch the newly created tickets
-      const { data: newTickets, error: refetchError } = await supabase
-        .from('lottery_tickets')
-        .select('*')
-        .eq('draw_id', drawId);
-
-      if (refetchError || !newTickets) {
-        throw new Error('Failed to fetch test tickets');
-      }
-
-      console.log(`✅ Created ${newTickets.length} test tickets`);
-      tickets = newTickets;
-    } else {
-      console.log(`🎫 Found ${tickets.length} existing tickets`);
     }
+
+    if (!tickets || tickets.length === 0) {
+      throw new Error('Failed to get or create tickets for testing');
+    }
+
+    console.log(`🎫 Using ${tickets.length} tickets for draw`);
 
     // Calculate prize pool (70% of total pool)
     const prizePoolLamports = Math.floor(draw.total_pool_lamports * 0.7);

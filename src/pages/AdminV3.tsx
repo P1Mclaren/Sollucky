@@ -237,17 +237,18 @@ export default function AdminV3() {
       }
 
       console.log('✅ Session found, fetching draw...');
-      // Get the active draw for this lottery type
+      
+      // Get any draw (prefer ones with status active/pre-order, but allow completed for testing)
       const { data: draw, error: drawError } = await supabase
         .from('lottery_draws')
-        .select('id')
+        .select('id, lottery_type, status')
         .eq('lottery_type', lotteryType)
-        .in('status', ['pre-order', 'active'])
+        .in('status', ['pre-order', 'active', 'completed'])
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      console.log('📊 Draw query result:', { draw, drawError });
+      console.log('📊 Selected draw:', draw);
 
       if (drawError || !draw) {
         console.log('❌ No active draw found');

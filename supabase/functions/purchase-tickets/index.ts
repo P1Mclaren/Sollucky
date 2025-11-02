@@ -416,6 +416,28 @@ serve(async (req) => {
 
     console.log(`✅ Created ${totalTickets} lottery tickets for ${walletAddress}`);
 
+    // Update prize pool (only normal tickets count - 70% of their cost)
+    const normalTicketsCount = ticketAmount; // Only purchased tickets, not bonus
+    const normalTicketsCost = actualTransferAmount; // Total cost paid
+    const prizePoolContribution = Math.floor(normalTicketsCost * 0.7); // 70% goes to prize pool
+    
+    console.log(`💰 Updating prize pool: +${prizePoolContribution} lamports from ${normalTicketsCount} normal tickets`);
+    
+    // Update the draw's total pool
+    const { error: poolUpdateError } = await supabase
+      .from('lottery_draws')
+      .update({
+        total_pool_lamports: draw.total_pool_lamports + prizePoolContribution,
+        jackpot_lamports: draw.jackpot_lamports + prizePoolContribution,
+        total_tickets_sold: draw.total_tickets_sold + normalTicketsCount
+      })
+      .eq('id', drawId);
+    
+    if (poolUpdateError) {
+      console.error('Error updating prize pool:', poolUpdateError);
+      // Don't fail the whole transaction, just log it
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true,

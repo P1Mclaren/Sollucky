@@ -2,6 +2,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { LotteryCountdown } from '@/components/LotteryCountdown';
 import { TicketPurchase } from '@/components/TicketPurchase';
+import { JackpotDisplay } from '@/components/JackpotDisplay';
 import { Trophy, Sparkles, Rocket } from 'lucide-react';
 import { useSolPrice } from '@/hooks/useSolPrice';
 
@@ -31,6 +32,9 @@ const DailyLottery = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
           {/* Left Column */}
           <div className="space-y-6">
+            {/* Jackpot Display */}
+            <JackpotDisplay lotteryType="daily" accentColor="primary" />
+
             {/* Countdown */}
             {isPreOrder && <LotteryCountdown targetDate={launchDate} />}
 

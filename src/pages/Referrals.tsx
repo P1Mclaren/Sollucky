@@ -209,138 +209,160 @@ const Referrals = () => {
       <ParticleBackground />
       <Navbar />
       
-      <main className="container mx-auto px-4 pt-24 pb-16 relative z-10">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Referral Program</h1>
+      <main className="container mx-auto px-4 pt-24 pb-8 relative z-10">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="font-orbitron text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              Referral Program
+            </h1>
             <p className="text-muted-foreground">
-              Share your referral code and earn 25% of ticket purchases
+              Share your referral code and earn 25% of Monthly ticket purchases
             </p>
           </div>
 
-          {/* Stats */}
+          {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalReferrals}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tickets from Referrals</CardTitle>
-                <Ticket className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalTickets}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Earnings Available</CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-500">
-                  {earnings ? (earnings.pending_lamports / LAMPORTS_PER_SOL).toFixed(2) : "0.00"} SOL
+            <div className="bg-card border border-primary/30 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary" />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Total earned: {earnings ? (earnings.total_earned_lamports / LAMPORTS_PER_SOL).toFixed(2) : "0.00"} SOL
-                </p>
-              </CardContent>
-            </Card>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Referrals</p>
+                  <p className="text-2xl font-orbitron font-bold">{totalReferrals}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card border border-accent/30 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
+                  <Ticket className="h-5 w-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Tickets Purchased</p>
+                  <p className="text-2xl font-orbitron font-bold">{totalTickets}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card border border-primary/30 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Wallet className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Available</p>
+                  <p className="text-2xl font-orbitron font-bold text-primary">
+                    {earnings ? (earnings.pending_lamports / LAMPORTS_PER_SOL).toFixed(4) : "0.00"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Total: {earnings ? (earnings.total_earned_lamports / LAMPORTS_PER_SOL).toFixed(4) : "0.00"} SOL
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Withdrawal Card */}
-          {earnings && earnings.pending_lamports > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Withdraw Earnings</CardTitle>
-                <CardDescription>Request a withdrawal to your wallet</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Available balance: {(earnings.pending_lamports / LAMPORTS_PER_SOL).toFixed(2)} SOL
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Minimum withdrawal: {MINIMUM_WITHDRAWAL_SOL} SOL
-                  </p>
-                </div>
-                <Button 
-                  onClick={handleWithdraw}
-                  disabled={withdrawing || (earnings.pending_lamports / LAMPORTS_PER_SOL) < MINIMUM_WITHDRAWAL_SOL}
-                  className="w-full md:w-auto"
-                >
-                  {withdrawing ? "Processing..." : "Request Withdrawal"}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Referral Code Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Referral Code</CardTitle>
-              <CardDescription>
-                {referralCode
-                  ? "Share this code with others to earn 25% of their ticket purchases"
-                  : "Create your unique referral code"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {referralCode ? (
-                <div className="flex gap-2">
-                  <Input value={referralCode} readOnly className="font-mono text-lg" />
-                  <Button onClick={copyReferralCode} variant="outline" size="icon">
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="newCode">Create Your Code</Label>
-                    <Input
-                      id="newCode"
-                      value={newCode}
-                      onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                      placeholder="Enter code (min 3 characters)"
-                      maxLength={20}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Referral Code Section */}
+              <div className="bg-card border border-primary/30 rounded-xl p-6">
+                <h2 className="font-orbitron text-xl font-bold mb-2">Your Referral Code</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {referralCode
+                    ? "Share this code to earn 25% commission"
+                    : "Create your unique referral code"}
+                </p>
+                
+                {referralCode ? (
+                  <div className="flex gap-2">
+                    <Input 
+                      value={referralCode} 
+                      readOnly 
+                      className="font-mono text-lg bg-background/50 border-primary/30" 
                     />
+                    <Button onClick={copyReferralCode} variant="outline" size="icon" className="border-primary/30">
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button onClick={createReferralCode} disabled={loading}>
-                    {loading ? "Creating..." : "Create Code"}
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="newCode" className="text-sm">Create Your Code</Label>
+                      <Input
+                        id="newCode"
+                        value={newCode}
+                        onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                        placeholder="Enter code (min 3 characters)"
+                        maxLength={20}
+                        className="bg-background/50 border-primary/30"
+                      />
+                    </div>
+                    <Button onClick={createReferralCode} disabled={loading} className="w-full bg-primary hover:bg-primary/90">
+                      {loading ? "Creating..." : "Create Code"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Withdrawal Card */}
+              {earnings && earnings.pending_lamports > 0 && (
+                <div className="bg-card border border-accent/30 rounded-xl p-6">
+                  <h2 className="font-orbitron text-xl font-bold mb-2">Withdraw Earnings</h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Request withdrawal to your wallet
+                  </p>
+                  
+                  <div className="bg-background/50 rounded-lg p-4 mb-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Available:</span>
+                      <span className="font-bold text-primary">{(earnings.pending_lamports / LAMPORTS_PER_SOL).toFixed(4)} SOL</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Minimum:</span>
+                      <span className="font-semibold">{MINIMUM_WITHDRAWAL_SOL} SOL</span>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleWithdraw}
+                    disabled={withdrawing || (earnings.pending_lamports / LAMPORTS_PER_SOL) < MINIMUM_WITHDRAWAL_SOL}
+                    className="w-full bg-accent hover:bg-accent/90"
+                  >
+                    {withdrawing ? "Processing..." : "Request Withdrawal"}
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Referrals List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Referrals</CardTitle>
-              <CardDescription>People who used your referral code</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {referrals.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No referrals yet. Share your code to get started!
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {referrals.map((referral) => (
+            {/* Right Column - Referrals List */}
+            <div className="bg-card border border-primary/30 rounded-xl p-6">
+              <h2 className="font-orbitron text-xl font-bold mb-2">Your Referrals</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                People who used your referral code
+              </p>
+              
+              <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                {referrals.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-8 h-8 text-primary" />
+                    </div>
+                    <p className="text-muted-foreground">
+                      No referrals yet. Share your code!
+                    </p>
+                  </div>
+                ) : (
+                  referrals.map((referral) => (
                     <div
                       key={referral.id}
-                      className="flex justify-between items-center p-3 border rounded-lg"
+                      className="flex justify-between items-center p-3 bg-background/50 border border-border rounded-lg hover:border-primary/30 transition-colors"
                     >
                       <div>
-                        <p className="font-mono text-sm">
+                        <p className="font-mono text-sm font-semibold">
                           {referral.referred_wallet.slice(0, 8)}...
                           {referral.referred_wallet.slice(-6)}
                         </p>
@@ -349,14 +371,15 @@ const Referrals = () => {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">{referral.tickets_purchased} tickets</p>
+                        <p className="font-bold text-primary">{referral.tickets_purchased}</p>
+                        <p className="text-xs text-muted-foreground">tickets</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 

@@ -145,142 +145,126 @@ const Admin = () => {
       <ParticleBackground />
       <Navbar />
       
-      <div className="container mx-auto px-4 py-24">
-        <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <div className="container mx-auto px-4 pt-24 pb-8">
+        <h1 className="font-orbitron text-4xl font-bold mb-6 text-center bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
           Admin Dashboard
         </h1>
 
         {/* Fund Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Creator Funds</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-primary">{totalCreatorFunds.toFixed(2)} SOL</p>
-              <p className="text-xs text-muted-foreground">30% from creator codes</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-card border border-primary/30 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Creator Funds</h3>
+            <p className="font-orbitron text-2xl font-bold text-primary mb-1">{totalCreatorFunds.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">30% from creator codes</p>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Operator Funds</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-secondary">{totalOperatorFunds.toFixed(2)} SOL</p>
-              <p className="text-xs text-muted-foreground">30% from BONUS2025</p>
-            </CardContent>
-          </Card>
+          <div className="bg-card border border-accent/30 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Operator Funds</h3>
+            <p className="font-orbitron text-2xl font-bold text-accent mb-1">{totalOperatorFunds.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">30% from BONUS2025</p>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Lottery Funds</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-accent">{totalLotteryFunds.toFixed(2)} SOL</p>
-              <p className="text-xs text-muted-foreground">70% of all purchases</p>
-            </CardContent>
-          </Card>
+          <div className="bg-card border border-primary/30 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Lottery Funds</h3>
+            <p className="font-orbitron text-2xl font-bold text-primary mb-1">{totalLotteryFunds.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">70% of all purchases</p>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Referrer Earnings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-green-500">{totalReferrerEarnings.toFixed(2)} SOL</p>
-              <p className="text-xs text-muted-foreground">25% to referrers</p>
-            </CardContent>
-          </Card>
+          <div className="bg-card border border-accent/30 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Referrer Earnings</h3>
+            <p className="font-orbitron text-2xl font-bold text-accent mb-1">{totalReferrerEarnings.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">25% to referrers</p>
+          </div>
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
           </TabsList>
 
           <TabsContent value="transactions">
-            <Card>
-              <CardHeader>
-                <CardTitle>All Ticket Purchases</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Wallet</TableHead>
-                        <TableHead>Code</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Total</TableHead>
-                        <TableHead>Creator</TableHead>
-                        <TableHead>Operator</TableHead>
-                        <TableHead>Lottery</TableHead>
-                        <TableHead>Referrer</TableHead>
+            <div className="bg-card border border-primary/30 rounded-xl p-6">
+              <h2 className="font-orbitron text-xl font-bold mb-4">All Ticket Purchases</h2>
+              
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border/50">
+                      <TableHead className="text-xs">Date</TableHead>
+                      <TableHead className="text-xs">Wallet</TableHead>
+                      <TableHead className="text-xs">Code</TableHead>
+                      <TableHead className="text-xs">Type</TableHead>
+                      <TableHead className="text-xs">Total</TableHead>
+                      <TableHead className="text-xs">Creator</TableHead>
+                      <TableHead className="text-xs">Operator</TableHead>
+                      <TableHead className="text-xs">Lottery</TableHead>
+                      <TableHead className="text-xs">Referrer</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {fundSplits.map((split) => (
+                      <TableRow key={split.id} className="border-border/50 hover:bg-primary/5">
+                        <TableCell className="text-xs">{new Date(split.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="font-mono text-xs">{split.wallet_address.slice(0, 6)}...</TableCell>
+                        <TableCell className="text-xs">{split.referral_code || "-"}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={split.referral_type === "creator" ? "default" : split.referral_type === "operator" ? "secondary" : "outline"}
+                            className="text-xs"
+                          >
+                            {split.referral_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs font-semibold">{lamportsToSol(split.total_lamports)}</TableCell>
+                        <TableCell className="text-xs text-primary">{lamportsToSol(split.creator_funds_lamports)}</TableCell>
+                        <TableCell className="text-xs text-accent">{lamportsToSol(split.operator_funds_lamports)}</TableCell>
+                        <TableCell className="text-xs text-primary">{lamportsToSol(split.lottery_funds_lamports)}</TableCell>
+                        <TableCell className="text-xs text-accent">{lamportsToSol(split.referrer_earnings_lamports)}</TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {fundSplits.map((split) => (
-                        <TableRow key={split.id}>
-                          <TableCell>{new Date(split.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell className="font-mono text-xs">{split.wallet_address.slice(0, 8)}...</TableCell>
-                          <TableCell>{split.referral_code || "-"}</TableCell>
-                          <TableCell>
-                            <Badge variant={split.referral_type === "creator" ? "default" : split.referral_type === "operator" ? "secondary" : "outline"}>
-                              {split.referral_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{lamportsToSol(split.total_lamports)} SOL</TableCell>
-                          <TableCell className="text-primary">{lamportsToSol(split.creator_funds_lamports)} SOL</TableCell>
-                          <TableCell className="text-secondary">{lamportsToSol(split.operator_funds_lamports)} SOL</TableCell>
-                          <TableCell className="text-accent">{lamportsToSol(split.lottery_funds_lamports)} SOL</TableCell>
-                          <TableCell className="text-green-500">{lamportsToSol(split.referrer_earnings_lamports)} SOL</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="withdrawals">
-            <Card>
-              <CardHeader>
-                <CardTitle>Withdrawal Requests</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Wallet</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Processed</TableHead>
+            <div className="bg-card border border-accent/30 rounded-xl p-6">
+              <h2 className="font-orbitron text-xl font-bold mb-4">Withdrawal Requests</h2>
+              
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border/50">
+                      <TableHead className="text-xs">Date</TableHead>
+                      <TableHead className="text-xs">Wallet</TableHead>
+                      <TableHead className="text-xs">Amount</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
+                      <TableHead className="text-xs">Processed</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {withdrawals.map((withdrawal) => (
+                      <TableRow key={withdrawal.id} className="border-border/50 hover:bg-accent/5">
+                        <TableCell className="text-xs">{new Date(withdrawal.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="font-mono text-xs">{withdrawal.wallet_address.slice(0, 6)}...</TableCell>
+                        <TableCell className="text-xs font-semibold">{lamportsToSol(withdrawal.amount_lamports)} SOL</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={withdrawal.status === "pending" ? "outline" : withdrawal.status === "completed" ? "default" : "destructive"}
+                            className="text-xs"
+                          >
+                            {withdrawal.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">{withdrawal.processed_at ? new Date(withdrawal.processed_at).toLocaleDateString() : "-"}</TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {withdrawals.map((withdrawal) => (
-                        <TableRow key={withdrawal.id}>
-                          <TableCell>{new Date(withdrawal.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell className="font-mono text-xs">{withdrawal.wallet_address.slice(0, 8)}...</TableCell>
-                          <TableCell>{lamportsToSol(withdrawal.amount_lamports)} SOL</TableCell>
-                          <TableCell>
-                            <Badge variant={withdrawal.status === "pending" ? "outline" : withdrawal.status === "completed" ? "default" : "destructive"}>
-                              {withdrawal.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{withdrawal.processed_at ? new Date(withdrawal.processed_at).toLocaleDateString() : "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

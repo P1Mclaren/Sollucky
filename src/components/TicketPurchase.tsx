@@ -31,7 +31,7 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
   const totalPriceSol = ticketPriceSol * ticketCount;
   const totalPriceUsd = ticketPriceUsd * ticketCount;
 
-  const bonusTickets = isPreOrder && lotteryType === 'monthly' ? ticketCount : 0;
+  const bonusTickets = isPreOrder && lotteryType === 'monthly' && referralCode.trim() !== '' ? ticketCount : 0;
   const totalTickets = ticketCount + bonusTickets;
 
   // Get lottery wallet address based on type
@@ -155,8 +155,11 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
       </div>
 
       {isPreOrder && lotteryType === 'monthly' && (
-        <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+        <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 space-y-2">
           <p className="text-primary font-semibold">🎁 Pre-Order Bonus: Get 2× tickets!</p>
+          <p className="text-sm text-muted-foreground">
+            Enter a referral code to activate your bonus. Don't have one? Use <span className="font-bold text-primary">BONUS2025</span>
+          </p>
         </div>
       )}
 
@@ -174,10 +177,12 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
 
         {showReferralInput && lotteryType === 'monthly' && (
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Referral Code (Optional)</label>
+            <label className="text-sm text-muted-foreground mb-2 block">
+              Referral Code {isPreOrder && <span className="text-primary font-semibold">(Required for 2× Bonus)</span>}
+            </label>
             <Input
               type="text"
-              placeholder="Enter referral code"
+              placeholder={isPreOrder ? "Use BONUS2025 if you don't have one" : "Enter referral code"}
               value={referralCode}
               onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
               className="bg-background/50"

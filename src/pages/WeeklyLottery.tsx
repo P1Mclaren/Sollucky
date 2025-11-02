@@ -5,7 +5,7 @@ import { TicketPurchase } from '@/components/TicketPurchase';
 import { Trophy, Gift, Sparkles, Zap } from 'lucide-react';
 
 const WeeklyLottery = () => {
-  const launchDate = new Date('2025-01-13T18:00:00+01:00');
+  const launchDate = new Date('2025-11-12T18:00:00+01:00');
   const isPreOrder = new Date() < launchDate;
   const solPrice = 200;
 

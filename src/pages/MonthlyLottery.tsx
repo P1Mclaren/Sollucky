@@ -5,8 +5,8 @@ import { TicketPurchase } from '@/components/TicketPurchase';
 import { Trophy, Gift, Users, Sparkles } from 'lucide-react';
 
 const MonthlyLottery = () => {
-  // Launch date: 13th at 6 PM CET (18:00 CET)
-  const launchDate = new Date('2025-01-13T18:00:00+01:00');
+  // Launch date: 12th November at 6 PM CET (18:00 CET)
+  const launchDate = new Date('2025-11-12T18:00:00+01:00');
   const isPreOrder = new Date() < launchDate;
   
   // Mock SOL price - will be fetched from API

@@ -37,9 +37,9 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
   // Get lottery wallet address based on type
   const getLotteryWallet = () => {
     const wallets = {
-      monthly: 'TgtoboRzo2uzz9yF7NsaCmJrC7uDt664TMgCDMxoLYvvSJgBmuiovzms3cLnctT8ws9N4R2sLE5W3w4rnQCtrws',
-      weekly: '412KtEEM5PrTW2hubE3x3n7vTqkH6kQ4Wgp6FBTjjr1jiC9QvqdvKrZrr4cViawiNWx6Qpie6EmfP5irvRKo76Na',
-      daily: '5E1Jdmn3WpLXy4wrG1b4zBv3dCxTis9tmSMZDLTeL5v6edb7SrRamRhGynouwPXBTC93Rtap6kDomr7cMezLAxq7',
+      monthly: 'FfVVCDEoigroHR49zLxS3C3WuWQDzT6Mujidd73bDfcM',
+      weekly: 'EAcYYNgT3BexVLpjnAwDawd75VXvjcAeCf37bXK4f7Zp',
+      daily: 'Bt75Ar8C3U5cPVhWmXj8CTF1AG858DsYntqMbAwQhRqj',
     };
     return wallets[lotteryType];
   };

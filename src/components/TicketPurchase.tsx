@@ -45,7 +45,17 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
   };
 
   const handlePurchase = async () => {
+    console.log('🎟️ Purchase initiated:', {
+      connected,
+      publicKey: publicKey?.toString(),
+      draw: draw?.id,
+      ticketCount,
+      referralCode,
+      isTestMode
+    });
+
     if (!connected || !publicKey || !sendTransaction) {
+      console.error('❌ Wallet not connected');
       toast({
         title: 'Wallet not connected',
         description: 'Please connect your wallet to purchase tickets',
@@ -55,6 +65,7 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
     }
 
     if (!draw) {
+      console.error('❌ No active draw found');
       toast({
         title: 'No active lottery draw',
         description: 'Admin must initialize lottery draws first. Go to /admin-v3 and click "Initialize Lottery Draws" (must be in production mode).',
@@ -70,11 +81,19 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
     try {
       // Create Solana connection
       const network = isTestMode ? 'https://api.devnet.solana.com' : 'https://api.mainnet-beta.solana.com';
+      console.log('🌐 Connecting to network:', network);
       const connection = new Connection(network, 'confirmed');
 
       // Create transaction
       const lamports = Math.floor(totalPriceSol * LAMPORTS_PER_SOL);
       const lotteryWallet = new PublicKey(getLotteryWallet());
+      
+      console.log('💰 Transaction details:', {
+        from: publicKey.toString(),
+        to: lotteryWallet.toString(),
+        lamports,
+        sol: totalPriceSol
+      });
 
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -90,7 +109,9 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
       transaction.feePayer = publicKey;
 
       // Send transaction
+      console.log('📤 Sending transaction...');
       signature = await sendTransaction(transaction, connection);
+      console.log('✅ Transaction sent:', signature);
       
       toast({
         title: 'Transaction sent',
@@ -98,9 +119,12 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
       });
 
       // Wait for confirmation
+      console.log('⏳ Waiting for confirmation...');
       await connection.confirmTransaction(signature, 'confirmed');
+      console.log('✅ Transaction confirmed');
 
       // Call edge function to process purchase
+      console.log('🔧 Calling purchase-tickets edge function...');
       const { data, error } = await supabase.functions.invoke('purchase-tickets', {
         body: {
           walletAddress: publicKey.toString(),
@@ -112,8 +136,12 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        throw error;
+      }
 
+      console.log('✅ Purchase processed:', data);
       setTxSignature(signature);
 
       toast({
@@ -125,7 +153,7 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
       setTicketCount(1);
       setReferralCode('');
     } catch (error: any) {
-      console.error('Purchase error:', error);
+      console.error('❌ Purchase error:', error);
       
       let errorMessage = 'Failed to complete purchase';
       

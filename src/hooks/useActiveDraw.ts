@@ -24,13 +24,14 @@ export function useActiveDraw(lotteryType: 'monthly' | 'weekly' | 'daily') {
           .in('status', ['active', 'pre-order'])
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') throw error;
+        if (error) throw error;
         
         setDraw(data);
       } catch (error) {
         console.error('Error fetching active draw:', error);
+        setDraw(null);
       } finally {
         setLoading(false);
       }

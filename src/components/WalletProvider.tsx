@@ -20,20 +20,8 @@ function WalletConnectionManager({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (connected && publicKey) {
-      const track = async () => {
-        try {
-          await supabase
-            .from('wallet_connections')
-            .upsert({
-              wallet_address: publicKey.toString(),
-              wallet_name: wallet?.adapter?.name || 'Unknown',
-              last_connected: new Date().toISOString(),
-            }, { onConflict: 'wallet_address' });
-        } catch (err) {
-          console.error('Failed to track:', err);
-        }
-      };
-      track();
+      // Wallet tracking is now handled server-side via auth-wallet edge function
+      // No client-side tracking needed
     }
   }, [connected, publicKey, wallet]);
 

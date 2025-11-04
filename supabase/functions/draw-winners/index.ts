@@ -264,7 +264,75 @@ serve(async (req) => {
 
     console.log('✅ Winners saved and draw marked as completed');
 
-    // 6. SEND ACTUAL SOL ON MAINNET
+    // 6. CREATE NEXT DRAW
+    console.log('📅 Creating next draw...');
+    const now = new Date();
+    let nextStartDate: Date;
+    let nextEndDate: Date;
+    let nextDrawDate: Date;
+
+    if (draw.lottery_type === 'monthly') {
+      // Next draw starts in 1 month
+      nextStartDate = new Date(now);
+      nextStartDate.setMonth(nextStartDate.getMonth() + 1);
+      nextStartDate.setDate(1);
+      nextStartDate.setHours(0, 0, 0, 0);
+      
+      nextEndDate = new Date(nextStartDate);
+      nextEndDate.setMonth(nextEndDate.getMonth() + 1);
+      nextEndDate.setDate(0); // Last day of month
+      nextEndDate.setHours(23, 59, 59, 999);
+      
+      nextDrawDate = new Date(nextEndDate);
+      nextDrawDate.setDate(nextDrawDate.getDate() + 1);
+      nextDrawDate.setHours(0, 0, 0, 0);
+    } else if (draw.lottery_type === 'weekly') {
+      // Next draw starts in 1 week
+      nextStartDate = new Date(now);
+      nextStartDate.setDate(nextStartDate.getDate() + 7);
+      nextStartDate.setHours(0, 0, 0, 0);
+      
+      nextEndDate = new Date(nextStartDate);
+      nextEndDate.setDate(nextEndDate.getDate() + 6);
+      nextEndDate.setHours(23, 59, 59, 999);
+      
+      nextDrawDate = new Date(nextEndDate);
+      nextDrawDate.setDate(nextDrawDate.getDate() + 1);
+      nextDrawDate.setHours(0, 0, 0, 0);
+    } else {
+      // Daily - next draw tomorrow
+      nextStartDate = new Date(now);
+      nextStartDate.setDate(nextStartDate.getDate() + 1);
+      nextStartDate.setHours(0, 0, 0, 0);
+      
+      nextEndDate = new Date(nextStartDate);
+      nextEndDate.setHours(23, 59, 59, 999);
+      
+      nextDrawDate = new Date(nextEndDate);
+      nextDrawDate.setDate(nextDrawDate.getDate() + 1);
+      nextDrawDate.setHours(0, 0, 0, 0);
+    }
+
+    const { error: createError } = await supabase
+      .from('lottery_draws')
+      .insert({
+        lottery_type: draw.lottery_type,
+        status: 'active',
+        start_date: nextStartDate.toISOString(),
+        end_date: nextEndDate.toISOString(),
+        draw_date: nextDrawDate.toISOString(),
+        total_pool_lamports: 0,
+        jackpot_lamports: 0,
+        total_tickets_sold: 0
+      });
+
+    if (createError) {
+      console.error('⚠️  Failed to create next draw:', createError);
+    } else {
+      console.log(`✅ Created next ${draw.lottery_type} draw (${nextStartDate.toISOString()} to ${nextEndDate.toISOString()})`);
+    }
+
+    // 7. SEND ACTUAL SOL ON MAINNET
     console.log('💸 Processing payouts on mainnet...');
     
     // Get the correct private key for this lottery type

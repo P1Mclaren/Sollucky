@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Trophy, Zap, Calendar, Sparkles, Clock, Gift } from 'lucide-react';
+import { Trophy, Zap, Calendar, Sparkles } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ParticleBackground } from '@/components/ParticleBackground';
@@ -64,18 +64,6 @@ const Lotteries = () => {
     }
   ];
 
-  const comingSoon = [
-    {
-      title: 'Hourly Lottery',
-      icon: Clock,
-      description: 'Win every hour with instant excitement',
-    },
-    {
-      title: 'Mega Lottery',
-      icon: Gift,
-      description: 'Massive jackpots for the biggest winners',
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -162,51 +150,6 @@ const Lotteries = () => {
         </div>
       </section>
 
-      {/* Coming Soon Section */}
-      <section className="py-12 md:py-16 relative">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-8 md:mb-12"
-          >
-            <h2 className="font-orbitron text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
-              Coming Soon
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              More ways to win are on the horizon
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
-            {comingSoon.map((lottery, index) => (
-              <motion.div
-                key={lottery.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-card border border-border/50 rounded-xl md:rounded-2xl p-6 sm:p-8 text-center opacity-60 hover:opacity-80 transition-all"
-              >
-                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-muted/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <lottery.icon className="w-7 h-7 sm:w-8 sm:h-8 text-muted-foreground" />
-                </div>
-                <h3 className="font-orbitron text-lg sm:text-xl font-bold mb-2 text-foreground">
-                  {lottery.title}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {lottery.description}
-                </p>
-                <div className="inline-block px-3 sm:px-4 py-2 rounded-full bg-muted/10 border border-muted/20">
-                  <span className="text-xs font-semibold text-muted-foreground">Coming Soon</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </div>

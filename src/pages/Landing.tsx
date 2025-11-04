@@ -10,6 +10,11 @@ import { LotteryCountdown } from '@/components/LotteryCountdown';
 
 export default function Landing() {
   const launchDate = new Date('2025-11-15T18:00:00+01:00');
+  
+  // Check if preview mode is enabled
+  const urlParams = new URLSearchParams(window.location.search);
+  const isPreviewMode = urlParams.get('preview') === 'launched';
+  const hasLaunched = isPreviewMode || new Date() >= launchDate;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -37,20 +42,22 @@ export default function Landing() {
             </p>
 
             {/* Countdown Timer */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mb-8"
-            >
-              <LotteryCountdown targetDate={launchDate} />
-            </motion.div>
+            {!hasLaunched && (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="mb-8"
+              >
+                <LotteryCountdown targetDate={launchDate} />
+              </motion.div>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Link to="/monthly">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 font-bold px-8">
                   <Gift className="w-5 h-5 mr-2" />
-                  Pre-Order Monthly (2× Bonus)
+                  {hasLaunched ? 'Play Monthly Lottery' : 'Pre-Order Monthly (2× Bonus)'}
                 </Button>
               </Link>
               <Button size="lg" variant="outline" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
@@ -95,7 +102,7 @@ export default function Landing() {
                       <Trophy className="w-6 h-6 text-primary" />
                     </div>
                     <span className="px-3 py-1 bg-primary/20 border border-primary rounded-full text-xs font-bold text-primary">
-                      PRE-ORDER 2× BONUS
+                      {hasLaunched ? 'LIVE' : 'PRE-ORDER 2× BONUS'}
                     </span>
                   </div>
                   <h3 className="font-orbitron text-2xl font-bold mb-2">Monthly Lottery</h3>

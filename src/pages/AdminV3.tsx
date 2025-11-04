@@ -269,12 +269,12 @@ export default function AdminV3() {
             <p className="text-muted-foreground">Lottery operations and financial overview</p>
           </div>
           <Button 
-            onClick={() => window.open('/', '_blank')}
+            onClick={() => window.open('/?preview=launched', '_blank')}
             variant="outline"
             className="gap-2 border-primary/30 hover:border-primary/50"
           >
             <ExternalLink className="w-4 h-4" />
-            Preview Website
+            Preview Live Website
           </Button>
         </div>
 

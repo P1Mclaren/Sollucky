@@ -280,8 +280,9 @@ serve(async (req) => {
 
     console.log(`🔑 Using wallet for ${draw.lottery_type} lottery`);
 
-    // Connect to mainnet
-    const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+    // Connect to mainnet using QuickNode RPC
+    const rpcEndpoint = Deno.env.get('SOLANA_RPC_ENDPOINT') || 'https://api.mainnet-beta.solana.com';
+    const connection = new Connection(rpcEndpoint, 'confirmed');
     const fromKeypair = Keypair.fromSecretKey(bs58.decode(privateKeyStr));
     
     console.log(`   From: ${fromKeypair.publicKey.toString()}`);

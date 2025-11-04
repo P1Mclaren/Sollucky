@@ -79,9 +79,9 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
     let signature: string | undefined;
 
     try {
-      // Using QuickNode free public endpoint
-      const network = 'https://api.mainnet-beta.solana.com';
-      console.log('🌐 Connecting to mainnet:', network);
+      // Using QuickNode RPC endpoint for reliable mainnet access
+      const network = 'https://smart-quiet-sound.solana-mainnet.quiknode.pro/38fc432b1900727c313936f91b2618391eb340d6/';
+      console.log('🌐 Connecting to mainnet via QuickNode');
       const connection = new Connection(network, 'confirmed');
 
       // Create transaction

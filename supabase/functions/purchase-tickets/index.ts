@@ -14,7 +14,7 @@ const LOTTERY_WALLETS = {
   daily: 'Bt75Ar8C3U5cPVhWmXj8CTF1AG858DsYntqMbAwQhRqj',
 };
 const TICKET_PRICE_USD = 1; // $1 per ticket
-const SOLANA_NETWORK = "https://api.mainnet-beta.solana.com";
+const SOLANA_NETWORK = Deno.env.get('SOLANA_RPC_ENDPOINT') || "https://api.mainnet-beta.solana.com";
 const OPERATOR_REFERRAL_CODE = "BONUS2025";
 const FUND_SPLIT_PERCENTAGE = 0.30; // 30% to creator/operator, 70% to lottery
 

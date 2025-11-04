@@ -42,7 +42,8 @@ function WalletConnectionManager({ children }: { children: React.ReactNode }) {
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const network = WalletAdapterNetwork.Mainnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  // Using QuickNode RPC for reliable mainnet access
+  const endpoint = useMemo(() => 'https://smart-quiet-sound.solana-mainnet.quiknode.pro/38fc432b1900727c313936f91b2618391eb340d6/', []);
   
   const wallets = useMemo(
     () => [

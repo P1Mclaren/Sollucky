@@ -8,7 +8,7 @@ import { ParticleBackground } from '@/components/ParticleBackground';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, Clock, Zap } from 'lucide-react';
+import { Loader2, Clock, Zap, ExternalLink } from 'lucide-react';
 
 interface LotteryFinancials {
   lotteryFunds: number;
@@ -261,11 +261,21 @@ export default function AdminV3() {
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8 relative z-10">
-        <div className="mb-8">
-          <h1 className="text-4xl font-orbitron font-bold mb-2 bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground">Lottery operations and financial overview</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-orbitron font-bold mb-2 bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Admin Dashboard
+            </h1>
+            <p className="text-muted-foreground">Lottery operations and financial overview</p>
+          </div>
+          <Button 
+            onClick={() => window.open('/', '_blank')}
+            variant="outline"
+            className="gap-2 border-primary/30 hover:border-primary/50"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Preview Website
+          </Button>
         </div>
 
         {/* Launch Countdown */}

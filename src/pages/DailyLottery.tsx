@@ -22,12 +22,8 @@ const DailyLottery = () => {
               <span className="font-orbitron text-primary font-bold text-sm">PRE-ORDER NOW</span>
             </div>
           )}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 border-2 border-primary rounded-full">
-            <Rocket className="w-5 h-5 text-primary" />
-            <span className="font-orbitron text-primary font-semibold">Daily Lottery</span>
-          </div>
           <h1 className="font-orbitron text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Daily Draws
+            Daily Lottery
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             New winner every day! Quick, exciting, and rewarding!

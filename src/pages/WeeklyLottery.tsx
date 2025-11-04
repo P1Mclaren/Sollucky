@@ -22,12 +22,8 @@ const WeeklyLottery = () => {
               <span className="font-orbitron text-neon-purple font-bold text-sm">PRE-ORDER NOW</span>
             </div>
           )}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-neon-purple/20 border-2 border-neon-purple rounded-full">
-            <Zap className="w-5 h-5 text-neon-purple" />
-            <span className="font-orbitron text-neon-purple font-semibold">Weekly Lottery</span>
-          </div>
           <h1 className="font-orbitron text-4xl font-bold bg-gradient-to-r from-neon-purple via-primary to-neon-purple bg-clip-text text-transparent">
-            Weekly Winners
+            Weekly Lottery
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Fast-paced action with great prizes every week!

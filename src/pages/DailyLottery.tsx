@@ -33,7 +33,7 @@ const DailyLottery = () => {
           {/* Left Column */}
           <div className="space-y-6">
             {/* Jackpot Display */}
-            <JackpotDisplay lotteryType="daily" accentColor="primary" />
+            <JackpotDisplay lotteryType="daily" accentColor="primary" isPreOrder={isPreOrder} />
 
             {/* Countdown */}
             {isPreOrder && <LotteryCountdown targetDate={launchDate} />}

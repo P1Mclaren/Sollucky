@@ -36,7 +36,7 @@ const MonthlyLottery = () => {
           {/* Left Column */}
           <div className="space-y-6">
             {/* Jackpot Display */}
-            <JackpotDisplay lotteryType="monthly" accentColor="primary" />
+            <JackpotDisplay lotteryType="monthly" accentColor="primary" isPreOrder={isPreOrder} />
 
             {/* Countdown */}
             {isPreOrder && <LotteryCountdown targetDate={launchDate} />}

@@ -33,7 +33,7 @@ const WeeklyLottery = () => {
           {/* Left Column */}
           <div className="space-y-6">
             {/* Jackpot Display */}
-            <JackpotDisplay lotteryType="weekly" accentColor="accent" />
+            <JackpotDisplay lotteryType="weekly" accentColor="accent" isPreOrder={isPreOrder} />
 
             {/* Countdown */}
             {isPreOrder && <LotteryCountdown targetDate={launchDate} />}

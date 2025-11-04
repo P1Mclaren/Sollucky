@@ -7,14 +7,31 @@ import { motion } from 'framer-motion';
 interface JackpotDisplayProps {
   lotteryType: 'monthly' | 'weekly' | 'daily';
   accentColor?: 'primary' | 'accent';
+  isPreOrder?: boolean;
 }
 
-export function JackpotDisplay({ lotteryType, accentColor = 'primary' }: JackpotDisplayProps) {
+export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrder = false }: JackpotDisplayProps) {
   const [prizePool, setPrizePool] = useState<number>(0);
   const [ticketsSold, setTicketsSold] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
+  // Example prize pools for pre-order display
+  const examplePrizePools = {
+    monthly: 100,
+    weekly: 25,
+    daily: 5
+  };
+
   useEffect(() => {
+    // If pre-order, show example prizes immediately
+    if (isPreOrder) {
+      setPrizePool(examplePrizePools[lotteryType]);
+      setTicketsSold(0);
+      setLoading(false);
+      return;
+    }
+
+    // After launch, fetch real prize pool
     const fetchPrizePool = async () => {
       const { data: draw } = await supabase
         .from('lottery_draws')
@@ -57,7 +74,7 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary' }: Jackpot
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [lotteryType]);
+  }, [lotteryType, isPreOrder]);
 
   const colorClasses = {
     primary: {
@@ -133,7 +150,7 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary' }: Jackpot
         {/* Prize Pool Label */}
         <div>
           <p className={`text-sm font-semibold ${colors.text} tracking-wider uppercase mb-2`}>
-            Current Prize Pool
+            {isPreOrder ? 'Possible Prize Pool' : 'Current Prize Pool'}
           </p>
           
           {/* Prize Amount */}
@@ -149,13 +166,20 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary' }: Jackpot
           </motion.div>
 
           {/* Tickets Sold */}
-          <p className="text-sm text-muted-foreground mt-2">
-            {ticketsSold.toLocaleString()} tickets sold
-          </p>
+          {!isPreOrder && (
+            <p className="text-sm text-muted-foreground mt-2">
+              {ticketsSold.toLocaleString()} tickets sold
+            </p>
+          )}
+          {isPreOrder && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Example prize pool based on expected participation
+            </p>
+          )}
         </div>
 
         {/* Growing indicator */}
-        {ticketsSold > 0 && (
+        {!isPreOrder && ticketsSold > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

@@ -17,6 +17,11 @@ const WeeklyLottery = () => {
       
       <main className="container mx-auto px-4 pt-24 pb-6 space-y-6">
         <div className="text-center space-y-3 py-4">
+          {isPreOrder && (
+            <div className="inline-block mb-2 px-6 py-2 bg-neon-purple/30 border-2 border-neon-purple rounded-full animate-pulse">
+              <span className="font-orbitron text-neon-purple font-bold text-sm">PRE-ORDER NOW</span>
+            </div>
+          )}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-neon-purple/20 border-2 border-neon-purple rounded-full">
             <Zap className="w-5 h-5 text-neon-purple" />
             <span className="font-orbitron text-neon-purple font-semibold">Weekly Lottery</span>

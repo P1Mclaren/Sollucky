@@ -17,6 +17,11 @@ const DailyLottery = () => {
       
       <main className="container mx-auto px-4 pt-24 pb-6 space-y-6">
         <div className="text-center space-y-3 py-4">
+          {isPreOrder && (
+            <div className="inline-block mb-2 px-6 py-2 bg-primary/30 border-2 border-primary rounded-full animate-pulse">
+              <span className="font-orbitron text-primary font-bold text-sm">PRE-ORDER NOW</span>
+            </div>
+          )}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 border-2 border-primary rounded-full">
             <Rocket className="w-5 h-5 text-primary" />
             <span className="font-orbitron text-primary font-semibold">Daily Lottery</span>

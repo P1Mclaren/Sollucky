@@ -77,8 +77,18 @@ const WeeklyLottery = () => {
                   </div>
                 </div>
 
+                {isPreOrder && (
+                  <div className="flex gap-2">
+                    <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 text-accent font-bold text-xs">2</div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Pre-Order Phase</h3>
+                      <p className="text-xs">Buy tickets before official launch</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
-                  <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 text-accent font-bold text-xs">2</div>
+                  <div className={`w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 text-accent font-bold text-xs`}>{isPreOrder ? '3' : '2'}</div>
                   <div>
                     <h3 className="font-semibold text-foreground">Weekly Draws</h3>
                     <p className="text-xs">Winners selected every week</p>
@@ -86,7 +96,7 @@ const WeeklyLottery = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 text-accent font-bold text-xs">3</div>
+                  <div className={`w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 text-accent font-bold text-xs`}>{isPreOrder ? '4' : '3'}</div>
                   <div>
                     <h3 className="font-semibold text-foreground">70% Prize Pool</h3>
                     <p className="text-xs">65% main winner, 5% runner-up</p>
@@ -94,7 +104,7 @@ const WeeklyLottery = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 text-accent font-bold text-xs">4</div>
+                  <div className={`w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0 text-accent font-bold text-xs`}>{isPreOrder ? '5' : '4'}</div>
                   <div>
                     <h3 className="font-semibold text-foreground">Instant Payouts</h3>
                     <p className="text-xs">Auto-sent to winning wallets</p>

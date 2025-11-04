@@ -191,14 +191,6 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
         </div>
       )}
 
-      {isPreOrder && (lotteryType === 'weekly' || lotteryType === 'daily') && (
-        <div className="bg-accent/10 border border-accent/30 rounded-lg p-4">
-          <p className="text-sm text-muted-foreground">
-            ℹ️ <span className="font-semibold text-foreground">Pre-Order Phase</span> - No bonuses available for {lotteryType} lottery
-          </p>
-        </div>
-      )}
-
       <div className="space-y-4">
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">Number of Tickets</label>

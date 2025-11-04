@@ -131,12 +131,12 @@ export default function Landing() {
               viewport={{ once: true }}
             >
               <Link to="/weekly">
-                <div className="bg-card border border-neon-purple/30 rounded-xl p-6 hover:shadow-lg hover:shadow-neon-purple/20 transition-all group h-full">
+                <div className="bg-card border border-accent/30 rounded-xl p-6 hover:shadow-lg hover:shadow-accent/20 transition-all group h-full">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-neon-purple/10 rounded-full flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-neon-purple" />
+                    <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-accent" />
                     </div>
-                    <span className="px-3 py-1 bg-neon-purple/20 border border-neon-purple rounded-full text-xs font-bold text-neon-purple">
+                    <span className="px-3 py-1 bg-accent/20 border border-accent rounded-full text-xs font-bold text-accent">
                       PRE-ORDER
                     </span>
                   </div>
@@ -147,7 +147,7 @@ export default function Landing() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Prize Pool:</span>
-                      <span className="font-bold text-neon-purple">70%</span>
+                      <span className="font-bold text-accent">70%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Main Winner:</span>

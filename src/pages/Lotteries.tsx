@@ -152,7 +152,7 @@ const Lotteries = () => {
                     <Button 
                       className={`mt-6 w-full bg-${lottery.color} hover:bg-${lottery.color}/90`}
                     >
-                      {isPreOrder && lottery.badge.includes('2×') ? 'Pre-Order Now' : isPreOrder ? 'Pre-Order' : 'Play Now'}
+                      Pre-Order Now
                     </Button>
                   </div>
                 </Link>

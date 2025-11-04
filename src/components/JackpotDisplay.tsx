@@ -15,11 +15,11 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrde
   const [ticketsSold, setTicketsSold] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
-  // Example prize pools for pre-order display
+  // Example prize pools for pre-order display (realistic for new platform)
   const examplePrizePools = {
-    monthly: 100,
-    weekly: 25,
-    daily: 5
+    monthly: 8,    // 8 SOL (~$800-1000 USD)
+    weekly: 2.5,   // 2.5 SOL (~$250-300 USD)
+    daily: 0.75    // 0.75 SOL (~$75-90 USD)
   };
 
   useEffect(() => {
@@ -161,7 +161,7 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrde
             transition={{ duration: 0.3 }}
           >
             <h2 className={`font-orbitron text-5xl md:text-6xl font-bold ${colors.text} drop-shadow-lg`}>
-              {prizePool.toFixed(2)} SOL
+              {isPreOrder ? `~${prizePool.toFixed(1)}` : prizePool.toFixed(2)} SOL
             </h2>
           </motion.div>
 
@@ -173,7 +173,7 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrde
           )}
           {isPreOrder && (
             <p className="text-sm text-muted-foreground mt-2">
-              Example prize pool based on expected participation
+              Estimated based on initial ticket sales
             </p>
           )}
         </div>

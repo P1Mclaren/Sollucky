@@ -318,12 +318,12 @@ export default function AdminV3() {
             <div className="p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Creator Funds</p>
               <p className="text-2xl font-bold text-purple-400">{formatSOL(monthlyFinancials.creatorFunds)}</p>
-              <p className="text-xs text-muted-foreground mt-1">SOL • 30%</p>
+              <p className="text-xs text-muted-foreground mt-1">SOL • 30% (valid codes)</p>
             </div>
             <div className="p-4 rounded-lg bg-gradient-to-br from-pink-500/10 to-pink-500/5 border border-pink-500/20">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Operator Funds</p>
               <p className="text-2xl font-bold text-pink-400">{formatSOL(monthlyFinancials.operatorFunds)}</p>
-              <p className="text-xs text-muted-foreground mt-1">SOL • 30%</p>
+              <p className="text-xs text-muted-foreground mt-1">SOL • 30% (no code/BONUS2025)</p>
             </div>
           </div>
 
@@ -338,7 +338,7 @@ export default function AdminV3() {
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Distribution</p>
-                <p className="text-lg font-bold text-foreground">70% / 30% / 30%</p>
+                <p className="text-lg font-bold text-foreground">70% Lottery + 30% Split</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Status</p>

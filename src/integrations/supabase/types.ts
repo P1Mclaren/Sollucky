@@ -218,6 +218,7 @@ export type Database = {
           paid_at: string | null
           prize_lamports: number
           prize_tier: string
+          show_on_wall_of_fame: boolean | null
           ticket_id: string
           transaction_signature: string | null
           wallet_address: string
@@ -229,6 +230,7 @@ export type Database = {
           paid_at?: string | null
           prize_lamports: number
           prize_tier: string
+          show_on_wall_of_fame?: boolean | null
           ticket_id: string
           transaction_signature?: string | null
           wallet_address: string
@@ -240,6 +242,7 @@ export type Database = {
           paid_at?: string | null
           prize_lamports?: number
           prize_tier?: string
+          show_on_wall_of_fame?: boolean | null
           ticket_id?: string
           transaction_signature?: string | null
           wallet_address?: string

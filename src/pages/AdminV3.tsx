@@ -49,6 +49,7 @@ export default function AdminV3() {
   const [launchTime] = useState(new Date('2025-11-12T17:00:00Z')); // 6 PM CET = 5 PM UTC
   const [timeUntilLaunch, setTimeUntilLaunch] = useState('');
   const [hasLaunched, setHasLaunched] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   // Check admin status
   useEffect(() => {
@@ -227,6 +228,29 @@ export default function AdminV3() {
     }
   };
 
+  const handleInitializeLaunch = async () => {
+    if (!confirm('This will delete all existing draws and create new launch draws. Continue?')) {
+      return;
+    }
+
+    setIsInitializing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('initialize-launch-draws', {
+        body: {}
+      });
+
+      if (error) throw error;
+
+      toast.success('Launch draws initialized successfully!');
+      await fetchNextDraws();
+    } catch (error: any) {
+      console.error('Error initializing launch:', error);
+      toast.error(error.message || 'Failed to initialize launch draws');
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
   const formatSOL = (amount: number) => amount.toFixed(4);
 
   const getTimeUntilDraw = (drawDate: string) => {
@@ -286,8 +310,16 @@ export default function AdminV3() {
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground mb-1">Launch Countdown</p>
                 <p className="text-2xl font-mono font-bold text-primary">{timeUntilLaunch}</p>
+                <p className="text-xs text-muted-foreground mt-1">Nov 12, 2025 • 6 PM CET</p>
               </div>
-              <p className="text-xs text-muted-foreground">Nov 12, 2025 • 6 PM CET</p>
+              <Button 
+                onClick={handleInitializeLaunch} 
+                disabled={isInitializing}
+                className="gap-2"
+              >
+                {isInitializing && <Loader2 className="w-4 h-4 animate-spin" />}
+                Initialize Launch Draws
+              </Button>
             </div>
           </Card>
         )}

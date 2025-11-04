@@ -16,6 +16,47 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Admin authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Get wallet address from JWT
+    const walletAddress = user.user_metadata?.wallet_address;
+    if (!walletAddress) {
+      return new Response(
+        JSON.stringify({ error: 'Wallet address not found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Check if user is admin
+    const { data: isAdmin } = await supabase.rpc('has_role', {
+      _wallet: walletAddress,
+      _role: 'admin'
+    });
+
+    if (!isAdmin) {
+      return new Response(
+        JSON.stringify({ error: 'Admin access required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+
     console.log('🚀 Initializing launch draws...');
 
     // Launch date: November 12, 2025 at 6 PM CET (17:00 UTC)

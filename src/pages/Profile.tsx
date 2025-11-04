@@ -29,6 +29,8 @@ export default function Profile() {
     daily: number;
   }>({ monthly: 0, weekly: 0, daily: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [winnings, setWinnings] = useState<any[]>([]);
+  const [wallOfFameOptIn, setWallOfFameOptIn] = useState<boolean>(false);
 
   useEffect(() => {
     if (!connected) {
@@ -73,6 +75,17 @@ export default function Profile() {
 
           setTickets(ticketCounts);
           setBonusTickets(bonusCounts);
+        }
+
+        // Check for winnings
+        const { data: userWinnings } = await supabase
+          .from('lottery_winners')
+          .select('*, lottery_draws(lottery_type, draw_date)')
+          .eq('wallet_address', walletAddress);
+
+        if (userWinnings && userWinnings.length > 0) {
+          setWinnings(userWinnings);
+          setWallOfFameOptIn(userWinnings[0].show_on_wall_of_fame || false);
         }
       } catch (error) {
         console.error('Error loading profile data:', error);
@@ -210,6 +223,55 @@ export default function Profile() {
                 </Link>
               </div>
             </Card>
+
+            {/* Winner Wall of Fame Opt-in */}
+            {winnings.length > 0 && (
+              <Card className="p-6 mb-8 bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-sm border-primary/30">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Trophy className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-orbitron text-xl font-bold">🎉 You're a Winner!</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {winnings.length} prize{winnings.length > 1 ? 's' : ''} won
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t border-primary/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="font-semibold mb-1">Show on Wall of Fame</p>
+                      <p className="text-sm text-muted-foreground">
+                        Let others see your winning on our public Wall of Fame
+                      </p>
+                    </div>
+                    <Button
+                      variant={wallOfFameOptIn ? "default" : "outline"}
+                      onClick={async () => {
+                        try {
+                          const newOptIn = !wallOfFameOptIn;
+                          const { error } = await supabase
+                            .from('lottery_winners')
+                            .update({ show_on_wall_of_fame: newOptIn })
+                            .eq('wallet_address', publicKey!.toString());
+
+                          if (error) throw error;
+                          
+                          setWallOfFameOptIn(newOptIn);
+                          toast.success(newOptIn ? 'Added to Wall of Fame!' : 'Removed from Wall of Fame');
+                        } catch (error) {
+                          toast.error('Failed to update preference');
+                        }
+                      }}
+                    >
+                      {wallOfFameOptIn ? 'Visible' : 'Hidden'}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
 
             {/* Winners Link */}
             <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30">

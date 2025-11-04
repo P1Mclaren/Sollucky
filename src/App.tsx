@@ -19,6 +19,7 @@ import HowItWorks from "./pages/HowItWorks";
 import MonthlyLottery from "./pages/MonthlyLottery";
 import WeeklyLottery from "./pages/WeeklyLottery";
 import DailyLottery from "./pages/DailyLottery";
+import Lotteries from "./pages/Lotteries";
 import WallOfFame from "./pages/WallOfFame";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/monthly" element={<MonthlyLottery />} />
               <Route path="/weekly" element={<WeeklyLottery />} />
               <Route path="/daily" element={<DailyLottery />} />
+              <Route path="/lotteries" element={<Lotteries />} />
               <Route path="/wall-of-fame" element={<WallOfFame />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />

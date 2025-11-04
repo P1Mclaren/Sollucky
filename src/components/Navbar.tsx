@@ -81,6 +81,14 @@ export function Navbar() {
             Home
           </Link>
           <Link
+            to="/lotteries"
+            className={`text-sm font-medium transition-colors ${
+              isActive('/lotteries') ? 'text-primary' : 'text-foreground hover:text-primary'
+            }`}
+          >
+            Lotteries
+          </Link>
+          <Link
             to="/wall-of-fame"
             className={`text-sm font-medium transition-colors ${
               isActive('/wall-of-fame') ? 'text-primary' : 'text-foreground hover:text-primary'

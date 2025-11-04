@@ -9,7 +9,7 @@ import { FAQ } from '@/components/FAQ';
 import { LotteryCountdown } from '@/components/LotteryCountdown';
 
 export default function Landing() {
-  const launchDate = new Date('2025-11-15T18:00:00+01:00');
+  const launchDate = new Date('2025-11-12T18:00:00+01:00');
   
   // Check if preview mode is enabled
   const urlParams = new URLSearchParams(window.location.search);

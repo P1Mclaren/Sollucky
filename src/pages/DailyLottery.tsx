@@ -7,7 +7,7 @@ import { Trophy, Sparkles, Rocket } from 'lucide-react';
 import { useSolPrice } from '@/hooks/useSolPrice';
 
 const DailyLottery = () => {
-  const launchDate = new Date('2025-11-15T18:00:00+01:00');
+  const launchDate = new Date('2025-11-12T18:00:00+01:00');
   const isPreOrder = new Date() < launchDate;
   const { solPrice } = useSolPrice();
 

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 interface JackpotDisplayProps {
   lotteryType: 'monthly' | 'weekly' | 'daily';
-  accentColor?: 'primary' | 'accent';
+  accentColor?: 'primary' | 'accent' | 'neon-purple';
   isPreOrder?: boolean;
 }
 
@@ -88,6 +88,12 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrde
       border: 'border-accent/50',
       text: 'text-accent',
       glow: 'shadow-[0_0_50px_rgba(251,191,36,0.3)]',
+    },
+    'neon-purple': {
+      gradient: 'from-neon-purple/20 via-neon-purple/10 to-neon-purple/20',
+      border: 'border-neon-purple/50',
+      text: 'text-neon-purple',
+      glow: 'shadow-[0_0_50px_rgba(168,85,247,0.3)]',
     },
   };
 

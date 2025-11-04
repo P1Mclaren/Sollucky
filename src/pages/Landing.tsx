@@ -131,13 +131,13 @@ export default function Landing() {
               viewport={{ once: true }}
             >
               <Link to="/weekly">
-                <div className="bg-card border border-accent/30 rounded-xl p-6 hover:shadow-lg hover:shadow-accent/20 transition-all group h-full">
+                <div className="bg-card border border-neon-purple/30 rounded-xl p-6 hover:shadow-lg hover:shadow-neon-purple/20 transition-all group h-full">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-accent" />
+                    <div className="w-12 h-12 bg-neon-purple/10 rounded-full flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-neon-purple" />
                     </div>
-                    <span className="px-3 py-1 bg-accent/20 border border-accent rounded-full text-xs font-bold text-accent">
-                      WEEKLY
+                    <span className="px-3 py-1 bg-neon-purple/20 border border-neon-purple rounded-full text-xs font-bold text-neon-purple">
+                      PRE-ORDER
                     </span>
                   </div>
                   <h3 className="font-orbitron text-2xl font-bold mb-2">Weekly Lottery</h3>
@@ -147,7 +147,7 @@ export default function Landing() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Prize Pool:</span>
-                      <span className="font-bold text-accent">70%</span>
+                      <span className="font-bold text-neon-purple">70%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Main Winner:</span>
@@ -172,7 +172,7 @@ export default function Landing() {
                       <Calendar className="w-6 h-6 text-primary" />
                     </div>
                     <span className="px-3 py-1 bg-primary/20 border border-primary rounded-full text-xs font-bold text-primary">
-                      DAILY
+                      PRE-ORDER
                     </span>
                   </div>
                   <h3 className="font-orbitron text-2xl font-bold mb-2">Daily Lottery</h3>

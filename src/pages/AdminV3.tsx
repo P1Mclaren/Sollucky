@@ -256,193 +256,202 @@ export default function AdminV3() {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen flex flex-col">
       <ParticleBackground />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8 relative z-10">
-        {/* Header with gradient */}
-        <div className="mb-12 text-center">
-          <h1 className="text-5xl font-orbitron font-bold mb-3 bg-gradient-to-r from-primary via-purple-400 to-primary bg-clip-text text-transparent animate-gradient">
+        <div className="mb-8">
+          <h1 className="text-4xl font-orbitron font-bold mb-2 bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
             Admin Dashboard
           </h1>
-          <p className="text-muted-foreground text-lg">Manage lottery operations and financials</p>
+          <p className="text-muted-foreground">Lottery operations and financial overview</p>
         </div>
 
-        {/* Launch Countdown - Enhanced */}
+        {/* Launch Countdown */}
         {!hasLaunched && (
-          <Card className="p-8 mb-8 bg-gradient-to-br from-primary/20 to-purple-500/20 backdrop-blur-xl border-primary/50 shadow-xl shadow-primary/20 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent animate-pulse" />
-            <div className="relative flex items-center justify-center gap-6">
-              <Clock className="w-12 h-12 text-primary animate-pulse" />
-              <div>
-                <h2 className="text-2xl font-orbitron font-bold mb-2">🚀 Launch Countdown</h2>
-                <p className="text-5xl font-mono font-bold text-primary drop-shadow-lg mb-2">{timeUntilLaunch}</p>
-                <p className="text-sm text-muted-foreground">Until November 12, 2025 at 6 PM CET</p>
+          <Card className="p-6 mb-8 bg-card/30 backdrop-blur-sm border-primary/20">
+            <div className="flex items-center gap-4">
+              <Clock className="w-6 h-6 text-primary" />
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground mb-1">Launch Countdown</p>
+                <p className="text-2xl font-mono font-bold text-primary">{timeUntilLaunch}</p>
               </div>
+              <p className="text-xs text-muted-foreground">Nov 12, 2025 • 6 PM CET</p>
             </div>
           </Card>
         )}
 
-        {/* Monthly Lottery - Premium Card */}
-        <Card className="p-8 mb-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-primary/40 shadow-2xl hover:shadow-primary/30 transition-all duration-300 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          
-          <div className="relative">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-primary/20 backdrop-blur-sm">
-                  <Zap className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-3xl font-orbitron font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
-                    Monthly Lottery
-                  </h2>
-                  <p className="text-sm text-muted-foreground">Grand Prize Pool</p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => handleDrawNow('monthly')}
-                disabled={drawing === 'monthly'}
-                className="gap-2 px-6 py-6 text-lg font-bold shadow-lg shadow-primary/30 hover:shadow-primary/50 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
-              >
-                {drawing === 'monthly' ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Zap className="w-5 h-5" />
-                )}
-                Draw NOW
-              </Button>
+        {/* Monthly Lottery */}
+        <Card className="p-6 mb-6 bg-card/30 backdrop-blur-sm border-primary/20">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-orbitron font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+                Monthly Lottery
+              </h2>
+              {hasLaunched && nextDraws.find(d => d.type === 'monthly') && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Next draw: {getTimeUntilDraw(nextDraws.find(d => d.type === 'monthly')!.drawDate)}
+                </p>
+              )}
             </div>
-            
-            {hasLaunched && nextDraws.find(d => d.type === 'monthly') && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl border border-primary/30">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Next Draw In</p>
-                <p className="text-2xl font-mono font-bold text-primary">
-                  {getTimeUntilDraw(nextDraws.find(d => d.type === 'monthly')!.drawDate)}
+            <Button 
+              onClick={() => handleDrawNow('monthly')}
+              disabled={drawing === 'monthly'}
+              className="gap-2 bg-gradient-to-r from-primary to-purple-500"
+            >
+              {drawing === 'monthly' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4" />
+              )}
+              Draw Now
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Lottery Pool</p>
+              <p className="text-2xl font-bold text-primary">{formatSOL(monthlyFinancials.lotteryFunds)}</p>
+              <p className="text-xs text-muted-foreground mt-1">SOL • 70%</p>
+            </div>
+            <div className="p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Creator Funds</p>
+              <p className="text-2xl font-bold text-purple-400">{formatSOL(monthlyFinancials.creatorFunds)}</p>
+              <p className="text-xs text-muted-foreground mt-1">SOL • 30%</p>
+            </div>
+            <div className="p-4 rounded-lg bg-gradient-to-br from-pink-500/10 to-pink-500/5 border border-pink-500/20">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Operator Funds</p>
+              <p className="text-2xl font-bold text-pink-400">{formatSOL(monthlyFinancials.operatorFunds)}</p>
+              <p className="text-xs text-muted-foreground mt-1">SOL • 30%</p>
+            </div>
+          </div>
+
+          {/* Monthly Stats */}
+          <div className="mt-4 pt-4 border-t border-primary/10">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Total Revenue</p>
+                <p className="text-lg font-bold text-foreground">
+                  {formatSOL(monthlyFinancials.lotteryFunds + monthlyFinancials.creatorFunds + monthlyFinancials.operatorFunds)} SOL
                 </p>
               </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-6 bg-gradient-to-br from-primary/10 to-transparent rounded-xl border border-primary/20 backdrop-blur-sm hover:border-primary/40 transition-all">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Lottery Pool (70%)</p>
-                <p className="text-3xl font-bold text-primary drop-shadow-lg">{formatSOL(monthlyFinancials.lotteryFunds)} SOL</p>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Distribution</p>
+                <p className="text-lg font-bold text-foreground">70% / 30% / 30%</p>
               </div>
-              <div className="p-6 bg-gradient-to-br from-green-500/10 to-transparent rounded-xl border border-green-500/20 backdrop-blur-sm hover:border-green-500/40 transition-all">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Creator Funds (30%)</p>
-                <p className="text-3xl font-bold text-green-400 drop-shadow-lg">{formatSOL(monthlyFinancials.creatorFunds)} SOL</p>
-              </div>
-              <div className="p-6 bg-gradient-to-br from-blue-500/10 to-transparent rounded-xl border border-blue-500/20 backdrop-blur-sm hover:border-blue-500/40 transition-all">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Operator Funds (30%)</p>
-                <p className="text-3xl font-bold text-blue-400 drop-shadow-lg">{formatSOL(monthlyFinancials.operatorFunds)} SOL</p>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Status</p>
+                <p className="text-lg font-bold text-primary">Active</p>
               </div>
             </div>
           </div>
         </Card>
 
-        {/* Weekly & Daily in Grid */}
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
+        {/* Weekly & Daily Grid */}
+        <div className="grid md:grid-cols-2 gap-6">
           {/* Weekly Lottery */}
-          <Card className="p-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-purple-500/40 shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            
-            <div className="relative">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-purple-500/20 backdrop-blur-sm">
-                    <Zap className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-orbitron font-bold text-purple-400">Weekly</h2>
-                    <p className="text-xs text-muted-foreground">Every 7 Days</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => handleDrawNow('weekly')}
-                  disabled={drawing === 'weekly'}
-                  size="sm"
-                  className="gap-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-500/90 hover:to-purple-600/90"
-                >
-                  {drawing === 'weekly' ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Zap className="w-4 h-4" />
-                  )}
-                  Draw
-                </Button>
-              </div>
-              
-              {hasLaunched && nextDraws.find(d => d.type === 'weekly') && (
-                <div className="mb-4 p-3 bg-gradient-to-r from-purple-500/10 to-transparent rounded-lg border border-purple-500/30">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Next Draw</p>
-                  <p className="text-xl font-mono font-bold text-purple-400">
-                    {getTimeUntilDraw(nextDraws.find(d => d.type === 'weekly')!.drawDate)}
+          <Card className="p-6 bg-card/30 backdrop-blur-sm border-primary/20">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-orbitron font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+                  Weekly Lottery
+                </h2>
+                {hasLaunched && nextDraws.find(d => d.type === 'weekly') && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Next: {getTimeUntilDraw(nextDraws.find(d => d.type === 'weekly')!.drawDate)}
                   </p>
-                </div>
-              )}
+                )}
+              </div>
+              <Button 
+                onClick={() => handleDrawNow('weekly')}
+                disabled={drawing === 'weekly'}
+                size="sm"
+                className="gap-2 bg-gradient-to-r from-primary to-purple-500"
+              >
+                {drawing === 'weekly' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4" />
+                )}
+                Draw
+              </Button>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-gradient-to-br from-purple-500/10 to-transparent rounded-lg border border-purple-500/20">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Lottery (70%)</p>
-                  <p className="text-2xl font-bold text-purple-400">{formatSOL(weeklyFinancials.lotteryFunds)} SOL</p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-blue-500/10 to-transparent rounded-lg border border-blue-500/20">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Operator (30%)</p>
-                  <p className="text-2xl font-bold text-blue-400">{formatSOL(weeklyFinancials.operatorFunds)} SOL</p>
-                </div>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Lottery</p>
+                <p className="text-xl font-bold text-primary">{formatSOL(weeklyFinancials.lotteryFunds)}</p>
+                <p className="text-xs text-muted-foreground">SOL • 70%</p>
+              </div>
+              <div className="p-3 rounded-lg bg-gradient-to-br from-pink-500/10 to-pink-500/5 border border-pink-500/20">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Operator</p>
+                <p className="text-xl font-bold text-pink-400">{formatSOL(weeklyFinancials.operatorFunds)}</p>
+                <p className="text-xs text-muted-foreground">SOL • 30%</p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-primary/10 grid grid-cols-2 gap-4 text-center">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Total</p>
+                <p className="text-sm font-bold">{formatSOL(weeklyFinancials.lotteryFunds + weeklyFinancials.operatorFunds)} SOL</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Frequency</p>
+                <p className="text-sm font-bold">Every 7 Days</p>
               </div>
             </div>
           </Card>
 
           {/* Daily Lottery */}
-          <Card className="p-8 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border-orange-500/40 shadow-2xl hover:shadow-orange-500/30 transition-all duration-300 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            
-            <div className="relative">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-orange-500/20 backdrop-blur-sm">
-                    <Zap className="w-5 h-5 text-orange-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-orbitron font-bold text-orange-400">Daily</h2>
-                    <p className="text-xs text-muted-foreground">Every 24 Hours</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => handleDrawNow('daily')}
-                  disabled={drawing === 'daily'}
-                  size="sm"
-                  className="gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-500/90 hover:to-orange-600/90"
-                >
-                  {drawing === 'daily' ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Zap className="w-4 h-4" />
-                  )}
-                  Draw
-                </Button>
-              </div>
-              
-              {hasLaunched && nextDraws.find(d => d.type === 'daily') && (
-                <div className="mb-4 p-3 bg-gradient-to-r from-orange-500/10 to-transparent rounded-lg border border-orange-500/30">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Next Draw</p>
-                  <p className="text-xl font-mono font-bold text-orange-400">
-                    {getTimeUntilDraw(nextDraws.find(d => d.type === 'daily')!.drawDate)}
+          <Card className="p-6 bg-card/30 backdrop-blur-sm border-primary/20">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-orbitron font-bold bg-gradient-to-r from-primary to-pink-400 bg-clip-text text-transparent">
+                  Daily Lottery
+                </h2>
+                {hasLaunched && nextDraws.find(d => d.type === 'daily') && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Next: {getTimeUntilDraw(nextDraws.find(d => d.type === 'daily')!.drawDate)}
                   </p>
-                </div>
-              )}
+                )}
+              </div>
+              <Button 
+                onClick={() => handleDrawNow('daily')}
+                disabled={drawing === 'daily'}
+                size="sm"
+                className="gap-2 bg-gradient-to-r from-primary to-pink-500"
+              >
+                {drawing === 'daily' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4" />
+                )}
+                Draw
+              </Button>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-gradient-to-br from-orange-500/10 to-transparent rounded-lg border border-orange-500/20">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Lottery (70%)</p>
-                  <p className="text-2xl font-bold text-orange-400">{formatSOL(dailyFinancials.lotteryFunds)} SOL</p>
-                </div>
-                <div className="p-4 bg-gradient-to-br from-blue-500/10 to-transparent rounded-lg border border-blue-500/20">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Operator (30%)</p>
-                  <p className="text-2xl font-bold text-blue-400">{formatSOL(dailyFinancials.operatorFunds)} SOL</p>
-                </div>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Lottery</p>
+                <p className="text-xl font-bold text-primary">{formatSOL(dailyFinancials.lotteryFunds)}</p>
+                <p className="text-xs text-muted-foreground">SOL • 70%</p>
+              </div>
+              <div className="p-3 rounded-lg bg-gradient-to-br from-pink-500/10 to-pink-500/5 border border-pink-500/20">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Operator</p>
+                <p className="text-xl font-bold text-pink-400">{formatSOL(dailyFinancials.operatorFunds)}</p>
+                <p className="text-xs text-muted-foreground">SOL • 30%</p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-primary/10 grid grid-cols-2 gap-4 text-center">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Total</p>
+                <p className="text-sm font-bold">{formatSOL(dailyFinancials.lotteryFunds + dailyFinancials.operatorFunds)} SOL</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Frequency</p>
+                <p className="text-sm font-bold">Every 24 Hours</p>
               </div>
             </div>
           </Card>

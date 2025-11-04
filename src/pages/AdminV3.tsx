@@ -260,7 +260,7 @@ export default function AdminV3() {
       <ParticleBackground />
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-8 relative z-10">
+      <main className="flex-1 container mx-auto px-4 py-8 pt-24 relative z-10">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-orbitron font-bold mb-2 bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">

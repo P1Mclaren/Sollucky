@@ -4,7 +4,8 @@ import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Wallet, LogOut } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Wallet, LogOut, Menu } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from 'react';
@@ -60,16 +61,77 @@ export function Navbar() {
       }`}
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="text-2xl font-orbitron font-black text-primary text-glow-purple">
-            SOLLUCKY
-          </div>
-          {isTestMode && (
-            <Badge variant="outline" className="bg-green-500/20 text-green-500 border-green-500 text-xs">
-              MAINNET
-            </Badge>
-          )}
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* Mobile Menu */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64">
+              <nav className="flex flex-col gap-4 mt-8">
+                <Link
+                  to="/"
+                  className={`text-base font-medium transition-colors py-2 ${
+                    isActive('/') ? 'text-primary' : 'text-foreground hover:text-primary'
+                  }`}
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/lotteries"
+                  className={`text-base font-medium transition-colors py-2 ${
+                    isActive('/lotteries') ? 'text-primary' : 'text-foreground hover:text-primary'
+                  }`}
+                >
+                  Lotteries
+                </Link>
+                <Link
+                  to="/wall-of-fame"
+                  className={`text-base font-medium transition-colors py-2 ${
+                    isActive('/wall-of-fame') ? 'text-primary' : 'text-foreground hover:text-primary'
+                  }`}
+                >
+                  Winners
+                </Link>
+                {connected && (
+                  <>
+                    <Link
+                      to="/referrals"
+                      className={`text-base font-medium transition-colors py-2 ${
+                        isActive('/referrals') ? 'text-primary' : 'text-foreground hover:text-primary'
+                      }`}
+                    >
+                      Referrals
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin-v3"
+                        className={`text-base font-medium transition-colors py-2 ${
+                          isActive('/admin-v3') ? 'text-primary' : 'text-foreground hover:text-primary'
+                        }`}
+                      >
+                        Admin
+                      </Link>
+                    )}
+                  </>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
+
+          <Link to="/" className="flex items-center gap-2">
+            <div className="text-xl sm:text-2xl font-orbitron font-black text-primary text-glow-purple">
+              SOLLUCKY
+            </div>
+            {isTestMode && (
+              <Badge variant="outline" className="bg-green-500/20 text-green-500 border-green-500 text-xs">
+                MAINNET
+              </Badge>
+            )}
+          </Link>
+        </div>
         
         <div className="hidden md:flex items-center gap-8">
           <Link
@@ -120,7 +182,7 @@ export function Navbar() {
           )}
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {connected && publicKey ? (
             <div className="flex items-center gap-2">
               <Link 

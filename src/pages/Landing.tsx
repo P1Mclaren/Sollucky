@@ -33,7 +33,7 @@ export default function Landing() {
               Powered by Solana Blockchain
             </div>
             
-            <h1 className="font-orbitron text-5xl md:text-7xl font-black mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            <h1 className="font-orbitron text-4xl sm:text-5xl md:text-7xl font-black mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent px-2">
               SOLLUCKY
             </h1>
             

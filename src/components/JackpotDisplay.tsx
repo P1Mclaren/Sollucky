@@ -17,9 +17,9 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrde
 
   // Example prize pools for pre-order display (realistic for new platform)
   const examplePrizePools = {
-    monthly: 15,   // 15 SOL (~$1500-1800 USD)
-    weekly: 2.5,   // 2.5 SOL (~$250-300 USD)
-    daily: 0.75    // 0.75 SOL (~$75-90 USD)
+    monthly: 70,   // 70 SOL (~$7000-8400 USD)
+    weekly: 15,    // 15 SOL (~$1500-1800 USD)
+    daily: 2       // 2 SOL (~$200-240 USD)
   };
 
   useEffect(() => {

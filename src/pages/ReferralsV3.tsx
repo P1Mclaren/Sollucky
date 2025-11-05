@@ -44,6 +44,7 @@ const ReferralsV3 = () => {
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
   const [withdrawing, setWithdrawing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [solPrice, setSolPrice] = useState(0);
 
   useEffect(() => {
@@ -116,13 +117,18 @@ const ReferralsV3 = () => {
   const loadAllData = async () => {
     if (!publicKey) return;
     
-    await Promise.all([
-      loadReferralCode(),
-      loadReferrals(),
-      loadEarnings(),
-      loadWithdrawalHistory(),
-      loadSolPrice()
-    ]);
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadReferralCode(),
+        loadReferrals(),
+        loadEarnings(),
+        loadWithdrawalHistory(),
+        loadSolPrice()
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const loadSolPrice = async () => {
@@ -338,6 +344,24 @@ const ReferralsV3 = () => {
             <p className="text-muted-foreground text-lg">
               Earn 25% commission on all Monthly lottery tickets purchased with your code
             </p>
+            <Button 
+              onClick={loadAllData} 
+              disabled={refreshing}
+              variant="outline"
+              className="mt-4"
+            >
+              {refreshing ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  <Clock className="h-4 w-4 mr-2" />
+                  Refresh Data
+                </>
+              )}
+            </Button>
           </div>
 
           {/* Stats Cards */}

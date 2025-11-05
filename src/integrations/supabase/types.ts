@@ -489,6 +489,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_wallets: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       wallet_connections: {
         Row: {
           connection_count: number
@@ -551,6 +572,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_wallet: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

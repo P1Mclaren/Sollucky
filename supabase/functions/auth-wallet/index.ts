@@ -129,6 +129,38 @@ serve(async (req) => {
 
         session = signUpResult.data.session;
         user = signUpResult.data.user;
+
+        // Insert into user_wallets table for secure RLS
+        if (user) {
+          await supabaseClient
+            .from('user_wallets')
+            .insert({
+              user_id: user.id,
+              wallet_address: walletAddress,
+            })
+            .select()
+            .single();
+        }
+      }
+    }
+
+    // Ensure user_wallets entry exists for existing users
+    if (user && session) {
+      const { data: existingWallet } = await supabaseClient
+        .from('user_wallets')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!existingWallet) {
+        await supabaseClient
+          .from('user_wallets')
+          .insert({
+            user_id: user.id,
+            wallet_address: walletAddress,
+          })
+          .select()
+          .single();
       }
     }
 

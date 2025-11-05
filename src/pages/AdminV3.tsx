@@ -28,7 +28,6 @@ export default function AdminV3() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [drawing, setDrawing] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   
   const [monthlyFinancials, setMonthlyFinancials] = useState<LotteryFinancials>({
     lotteryFunds: 0,
@@ -114,7 +113,6 @@ export default function AdminV3() {
   }, [launchTime]);
 
   const fetchFinancials = async () => {
-    setRefreshing(true);
     try {
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -178,8 +176,6 @@ export default function AdminV3() {
     } catch (error) {
       console.error('Error fetching financials:', error);
       toast.error('Failed to load financial data');
-    } finally {
-      setRefreshing(false);
     }
   };
 
@@ -296,25 +292,14 @@ export default function AdminV3() {
             </h1>
             <p className="text-muted-foreground">Lottery operations and financial overview</p>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              onClick={fetchFinancials}
-              disabled={refreshing}
-              variant="outline"
-              className="gap-2 border-primary/30 hover:border-primary/50"
-            >
-              <Clock className="w-4 h-4" />
-              {refreshing ? 'Refreshing...' : 'Refresh Data'}
-            </Button>
-            <Button 
-              onClick={() => window.open('/?preview=launched', '_blank')}
-              variant="outline"
-              className="gap-2 border-primary/30 hover:border-primary/50"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Preview Live Website
-            </Button>
-          </div>
+          <Button 
+            onClick={() => window.open('/?preview=launched', '_blank')}
+            variant="outline"
+            className="gap-2 border-primary/30 hover:border-primary/50"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Preview Live Website
+          </Button>
         </div>
 
         {/* Launch Countdown */}

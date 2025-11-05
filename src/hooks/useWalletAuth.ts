@@ -7,12 +7,24 @@ export function useWalletAuth() {
   const { publicKey, connected } = useWallet();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
+  const [lastWallet, setLastWallet] = useState<string | null>(null);
 
   useEffect(() => {
+    const currentWallet = publicKey?.toString() || null;
+    
+    // If wallet changed, sign out old session first
+    if (lastWallet && currentWallet && lastWallet !== currentWallet) {
+      console.log('🔄 Wallet changed, signing out old session');
+      supabase.auth.signOut();
+      setSession(null);
+    }
+    
     if (connected && publicKey) {
+      setLastWallet(currentWallet);
       authenticateWallet();
     } else {
       setSession(null);
+      setLastWallet(null);
     }
   }, [connected, publicKey]);
 
@@ -21,18 +33,24 @@ export function useWalletAuth() {
 
     setLoading(true);
     try {
-      // Check if we already have a valid session
+      // Check if we already have a valid session FOR THIS WALLET
       const { data: { session: existingSession } } = await supabase.auth.getSession();
-      if (existingSession) {
-        console.log('✅ Existing session found');
+      const sessionWallet = existingSession?.user?.user_metadata?.wallet_address;
+      const currentWallet = publicKey.toString();
+      
+      if (existingSession && sessionWallet === currentWallet) {
+        console.log('✅ Existing session found for this wallet');
         setSession(existingSession);
         setLoading(false);
         return;
+      } else if (existingSession && sessionWallet !== currentWallet) {
+        console.log('🔄 Session wallet mismatch, signing out and reauthenticating');
+        await supabase.auth.signOut();
       }
 
-      console.log('🔐 Authenticating wallet:', publicKey.toString());
+      console.log('🔐 Authenticating wallet:', currentWallet);
       const { data, error } = await supabase.functions.invoke('auth-wallet', {
-        body: { walletAddress: publicKey.toString() },
+        body: { walletAddress: currentWallet },
       });
 
       if (error) {

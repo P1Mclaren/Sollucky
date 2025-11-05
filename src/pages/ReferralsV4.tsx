@@ -156,38 +156,38 @@ export default function ReferralsV4() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="text-center mb-12">
-              <h1 className="font-orbitron text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            <div className="text-center mb-8">
+              <h1 className="font-orbitron text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                 Referral Dashboard
               </h1>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground">
                 Earn rewards by sharing your unique referral code
               </p>
             </div>
 
             {loading ? (
-              <Card className="p-12 text-center bg-card/80 backdrop-blur-sm border-primary/30">
-                <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">Loading your referral data...</p>
+              <Card className="p-8 text-center bg-card/80 backdrop-blur-sm border-primary/30">
+                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">Loading your referral data...</p>
               </Card>
             ) : (
               <>
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <Card className="p-6 bg-gradient-to-br from-primary/10 via-card/80 to-card/80 backdrop-blur-sm border-primary/30 hover:border-primary/50 transition-all">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                          <Users className="w-6 h-6 text-primary" />
+                    <Card className="p-4 bg-gradient-to-br from-primary/10 via-card/80 to-card/80 backdrop-blur-sm border-primary/30 hover:border-primary/50 transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-primary" />
                         </div>
-                        <Sparkles className="w-5 h-5 text-primary/50" />
+                        <Sparkles className="w-4 h-4 text-primary/50" />
                       </div>
-                      <p className="text-sm text-muted-foreground mb-1">Total Referrals</p>
-                      <p className="text-4xl font-bold text-primary font-orbitron">{referrals.length}</p>
+                      <p className="text-xs text-muted-foreground mb-1">Total Referrals</p>
+                      <p className="text-3xl font-bold text-primary font-orbitron">{referrals.length}</p>
                     </Card>
                   </motion.div>
 
@@ -196,15 +196,15 @@ export default function ReferralsV4() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <Card className="p-6 bg-gradient-to-br from-accent/10 via-card/80 to-card/80 backdrop-blur-sm border-accent/30 hover:border-accent/50 transition-all">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-                          <Ticket className="w-6 h-6 text-accent" />
+                    <Card className="p-4 bg-gradient-to-br from-accent/10 via-card/80 to-card/80 backdrop-blur-sm border-accent/30 hover:border-accent/50 transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                          <Ticket className="w-5 h-5 text-accent" />
                         </div>
-                        <Sparkles className="w-5 h-5 text-accent/50" />
+                        <Sparkles className="w-4 h-4 text-accent/50" />
                       </div>
-                      <p className="text-sm text-muted-foreground mb-1">Tickets Sold</p>
-                      <p className="text-4xl font-bold text-accent font-orbitron">
+                      <p className="text-xs text-muted-foreground mb-1">Tickets Sold</p>
+                      <p className="text-3xl font-bold text-accent font-orbitron">
                         {referrals.reduce((sum, r) => sum + r.tickets_purchased, 0)}
                       </p>
                     </Card>
@@ -215,19 +215,19 @@ export default function ReferralsV4() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <Card className="p-6 bg-gradient-to-br from-primary/10 via-card/80 to-card/80 backdrop-blur-sm border-primary/30 hover:border-primary/50 transition-all">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                          <TrendingUp className="w-6 h-6 text-primary" />
+                    <Card className="p-4 bg-gradient-to-br from-primary/10 via-card/80 to-card/80 backdrop-blur-sm border-primary/30 hover:border-primary/50 transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                          <TrendingUp className="w-5 h-5 text-primary" />
                         </div>
-                        <Sparkles className="w-5 h-5 text-primary/50" />
+                        <Sparkles className="w-4 h-4 text-primary/50" />
                       </div>
-                      <p className="text-sm text-muted-foreground mb-1">Total Earned</p>
-                      <p className="text-3xl font-bold text-primary font-orbitron">
+                      <p className="text-xs text-muted-foreground mb-1">Total Earned</p>
+                      <p className="text-2xl font-bold text-primary font-orbitron">
                         {formatSol(earnings.total)} SOL
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        ≈ ${formatUsd(earnings.total)} USD
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        ≈ ${formatUsd(earnings.total)}
                       </p>
                     </Card>
                   </motion.div>
@@ -237,19 +237,19 @@ export default function ReferralsV4() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <Card className="p-6 bg-gradient-to-br from-accent/10 via-card/80 to-card/80 backdrop-blur-sm border-accent/30 hover:border-accent/50 transition-all">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
-                          <DollarSign className="w-6 h-6 text-accent" />
+                    <Card className="p-4 bg-gradient-to-br from-accent/10 via-card/80 to-card/80 backdrop-blur-sm border-accent/30 hover:border-accent/50 transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                          <DollarSign className="w-5 h-5 text-accent" />
                         </div>
-                        <Sparkles className="w-5 h-5 text-accent/50" />
+                        <Sparkles className="w-4 h-4 text-accent/50" />
                       </div>
-                      <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
-                      <p className="text-3xl font-bold text-accent font-orbitron">
+                      <p className="text-xs text-muted-foreground mb-1">Available Balance</p>
+                      <p className="text-2xl font-bold text-accent font-orbitron">
                         {formatSol(earnings.pending)} SOL
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        ≈ ${formatUsd(earnings.pending)} USD
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        ≈ ${formatUsd(earnings.pending)}
                       </p>
                     </Card>
                   </motion.div>
@@ -261,52 +261,110 @@ export default function ReferralsV4() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <Card className="p-8 mb-8 bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-primary/30">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-primary" />
+                  <Card className="p-6 mb-6 bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-primary/30">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Sparkles className="w-4 h-4 text-primary" />
                       </div>
-                      <h2 className="font-orbitron text-2xl font-bold">Your Referral Code</h2>
+                      <h2 className="font-orbitron text-xl font-bold">Your Referral Code</h2>
                     </div>
                     
                     {referralCode ? (
-                      <div className="space-y-4">
-                        <div className="relative p-8 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-xl border-2 border-primary/40">
-                          <p className="text-5xl font-bold font-mono text-center bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                      <div className="space-y-3">
+                        <div className="relative p-6 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-lg border-2 border-primary/40">
+                          <p className="text-4xl font-bold font-mono text-center bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                             {referralCode}
                           </p>
                         </div>
                         <Button
                           onClick={copyCode}
-                          className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
-                          size="lg"
+                          className="w-full bg-primary hover:bg-primary/90"
                         >
-                          <Copy className="w-5 h-5 mr-2" />
+                          <Copy className="w-4 h-4 mr-2" />
                           Copy Referral Code
                         </Button>
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <p className="text-muted-foreground text-center mb-6">
-                          Create your unique referral code to start earning rewards when others use it
+                        <p className="text-muted-foreground text-sm text-center mb-4">
+                          Create your unique referral code to start earning rewards
                         </p>
-                        <div className="flex gap-4">
+                        <div className="flex gap-3">
                           <Input
                             value={newCode}
                             onChange={(e) => setNewCode(e.target.value.toUpperCase())}
                             placeholder="ENTER YOUR CODE"
                             maxLength={20}
-                            className="flex-1 text-lg py-6 text-center font-mono bg-background/50 border-primary/30"
+                            className="flex-1 text-center font-mono bg-background/50 border-primary/30"
                           />
                           <Button
                             onClick={createReferralCode}
                             disabled={!newCode}
-                            className="bg-primary hover:bg-primary/90 px-8 py-6"
-                            size="lg"
+                            className="bg-primary hover:bg-primary/90 px-6"
                           >
                             Create
                           </Button>
                         </div>
+                      </div>
+                    )}
+                  </Card>
+                </motion.div>
+
+                {/* Referrals List */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-accent" />
+                      </div>
+                      <h2 className="font-orbitron text-xl font-bold">Your Referrals</h2>
+                    </div>
+                    
+                    {referrals.length === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                          <Users className="w-6 h-6 text-primary/50" />
+                        </div>
+                        <p className="text-muted-foreground">
+                          No referrals yet. Share your code to start earning!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {referrals.map((referral, index) => (
+                          <motion.div
+                            key={referral.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.7 + index * 0.05 }}
+                            className="p-4 bg-gradient-to-r from-background/50 to-background/30 rounded-lg border border-primary/20 hover:border-primary/40 transition-all"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <p className="font-mono text-sm text-muted-foreground mb-0.5">
+                                  {referral.referred_wallet.slice(0, 10)}...{referral.referred_wallet.slice(-10)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(referral.created_at).toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    year: 'numeric' 
+                                  })}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xl font-bold text-primary font-orbitron">
+                                  {referral.tickets_purchased}
+                                </p>
+                                <p className="text-xs text-muted-foreground">tickets</p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
                       </div>
                     )}
                   </Card>

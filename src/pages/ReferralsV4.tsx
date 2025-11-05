@@ -273,17 +273,14 @@ export default function ReferralsV4() {
                       
                       {referralCode ? (
                         <div className="space-y-3">
-                          <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-xl opacity-75 blur group-hover:opacity-100 transition" />
-                            <div className="relative p-5 bg-card rounded-lg border border-primary/30">
-                              <p className="text-3xl font-bold font-mono text-center tracking-wider bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                                {referralCode}
-                              </p>
-                            </div>
+                          <div className="p-4 bg-muted/50 rounded-lg border border-primary/20">
+                            <p className="text-2xl font-bold font-mono text-center tracking-wide text-primary">
+                              {referralCode}
+                            </p>
                           </div>
                           <Button
                             onClick={copyCode}
-                            className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg"
+                            className="w-full bg-primary hover:bg-primary/90"
                           >
                             <Copy className="w-4 h-4 mr-2" />
                             Copy Code

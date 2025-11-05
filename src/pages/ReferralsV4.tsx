@@ -9,7 +9,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Copy, DollarSign, Users, Ticket, TrendingUp } from 'lucide-react';
+import { Copy, DollarSign, Users, Ticket, TrendingUp, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function ReferralsV4() {
   const { publicKey } = useWallet();
@@ -39,53 +40,38 @@ export default function ReferralsV4() {
     
     setLoading(true);
     const wallet = publicKey.toString();
-    
-    console.log('🔍 Loading data for wallet:', wallet);
 
     try {
-      // Load SOL price
       const { data: priceData } = await supabase
         .from('sol_price_cache')
         .select('price_usd')
         .limit(1)
         .maybeSingle();
       
-      if (priceData) {
-        setSolPrice(Number(priceData.price_usd));
-      }
+      if (priceData) setSolPrice(Number(priceData.price_usd));
 
-      // Load referral code
-      const { data: codeData, error: codeError } = await supabase
+      const { data: codeData } = await supabase
         .from('referral_codes')
         .select('code')
         .eq('wallet_address', wallet)
         .maybeSingle();
       
-      console.log('Referral code query:', { codeData, codeError });
-      if (codeData) {
-        setReferralCode(codeData.code);
-      }
+      if (codeData) setReferralCode(codeData.code);
 
-      // Load referrals
-      const { data: referralsData, error: referralsError } = await supabase
+      const { data: referralsData } = await supabase
         .from('referrals')
         .select('*')
         .eq('referrer_wallet', wallet)
         .order('created_at', { ascending: false });
       
-      console.log('Referrals query:', { referralsData, referralsError });
-      if (referralsData) {
-        setReferrals(referralsData);
-      }
+      if (referralsData) setReferrals(referralsData);
 
-      // Load earnings
-      const { data: earningsData, error: earningsError } = await supabase
+      const { data: earningsData } = await supabase
         .from('referral_earnings')
         .select('*')
         .eq('wallet_address', wallet)
         .maybeSingle();
       
-      console.log('Earnings query:', { earningsData, earningsError });
       if (earningsData) {
         setEarnings({
           total: Number(earningsData.total_earned_lamports),
@@ -93,7 +79,6 @@ export default function ReferralsV4() {
           withdrawn: Number(earningsData.withdrawn_lamports)
         });
       }
-
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load referral data');
@@ -165,162 +150,230 @@ export default function ReferralsV4() {
       <Navbar />
 
       <main className="relative pt-24 pb-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <h1 className="font-orbitron text-4xl md:text-5xl font-bold mb-8 text-center">
-            Referral Dashboard
-          </h1>
+        <div className="container mx-auto max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="text-center mb-12">
+              <h1 className="font-orbitron text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                Referral Dashboard
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Earn rewards by sharing your unique referral code
+              </p>
+            </div>
 
-          {loading ? (
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">Loading your referral data...</p>
-            </Card>
-          ) : (
-            <>
-              {/* Stats Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Users className="w-5 h-5 text-primary" />
-                    <p className="text-sm text-muted-foreground">Total Referrals</p>
-                  </div>
-                  <p className="text-3xl font-bold text-primary">{referrals.length}</p>
-                </Card>
-
-                <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Ticket className="w-5 h-5 text-accent" />
-                    <p className="text-sm text-muted-foreground">Tickets Sold</p>
-                  </div>
-                  <p className="text-3xl font-bold text-accent">
-                    {referrals.reduce((sum, r) => sum + r.tickets_purchased, 0)}
-                  </p>
-                </Card>
-
-                <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30">
-                  <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    <p className="text-sm text-muted-foreground">Total Earned</p>
-                  </div>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatSol(earnings.total)} SOL
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    ${formatUsd(earnings.total)}
-                  </p>
-                </Card>
-
-                <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30">
-                  <div className="flex items-center gap-3 mb-2">
-                    <DollarSign className="w-5 h-5 text-accent" />
-                    <p className="text-sm text-muted-foreground">Available</p>
-                  </div>
-                  <p className="text-2xl font-bold text-accent">
-                    {formatSol(earnings.pending)} SOL
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    ${formatUsd(earnings.pending)}
-                  </p>
-                </Card>
-              </div>
-
-              {/* Referral Code Section */}
-              <Card className="p-6 mb-8 bg-card/80 backdrop-blur-sm border-primary/30">
-                <h2 className="font-orbitron text-2xl font-bold mb-4">Your Referral Code</h2>
-                
-                {referralCode ? (
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 p-4 bg-primary/10 rounded-lg border border-primary/30">
-                      <p className="text-3xl font-bold font-mono text-primary text-center">
-                        {referralCode}
-                      </p>
-                    </div>
-                    <Button
-                      onClick={copyCode}
-                      className="bg-primary hover:bg-primary/90"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground">
-                      Create your unique referral code to start earning rewards
-                    </p>
-                    <div className="flex gap-4">
-                      <Input
-                        value={newCode}
-                        onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                        placeholder="YOURCODE"
-                        maxLength={20}
-                        className="flex-1"
-                      />
-                      <Button
-                        onClick={createReferralCode}
-                        disabled={!newCode}
-                        className="bg-primary hover:bg-primary/90"
-                      >
-                        Create Code
-                      </Button>
-                    </div>
-                  </div>
-                )}
+            {loading ? (
+              <Card className="p-12 text-center bg-card/80 backdrop-blur-sm border-primary/30">
+                <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading your referral data...</p>
               </Card>
+            ) : (
+              <>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <Card className="p-6 bg-gradient-to-br from-primary/10 via-card/80 to-card/80 backdrop-blur-sm border-primary/30 hover:border-primary/50 transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                          <Users className="w-6 h-6 text-primary" />
+                        </div>
+                        <Sparkles className="w-5 h-5 text-primary/50" />
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-1">Total Referrals</p>
+                      <p className="text-4xl font-bold text-primary font-orbitron">{referrals.length}</p>
+                    </Card>
+                  </motion.div>
 
-              {/* Referrals List */}
-              <Card className="p-6 bg-card/80 backdrop-blur-sm border-primary/30">
-                <h2 className="font-orbitron text-2xl font-bold mb-4">Your Referrals</h2>
-                
-                {referrals.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No referrals yet. Share your code to start earning!
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {referrals.map((referral, index) => (
-                      <div
-                        key={referral.id}
-                        className="p-4 bg-background/50 rounded-lg border border-primary/20"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-mono text-sm text-muted-foreground">
-                              {referral.referred_wallet.slice(0, 8)}...{referral.referred_wallet.slice(-8)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(referral.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-primary">
-                              {referral.tickets_purchased} tickets
-                            </p>
-                          </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Card className="p-6 bg-gradient-to-br from-accent/10 via-card/80 to-card/80 backdrop-blur-sm border-accent/30 hover:border-accent/50 transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
+                          <Ticket className="w-6 h-6 text-accent" />
+                        </div>
+                        <Sparkles className="w-5 h-5 text-accent/50" />
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-1">Tickets Sold</p>
+                      <p className="text-4xl font-bold text-accent font-orbitron">
+                        {referrals.reduce((sum, r) => sum + r.tickets_purchased, 0)}
+                      </p>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Card className="p-6 bg-gradient-to-br from-primary/10 via-card/80 to-card/80 backdrop-blur-sm border-primary/30 hover:border-primary/50 transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                          <TrendingUp className="w-6 h-6 text-primary" />
+                        </div>
+                        <Sparkles className="w-5 h-5 text-primary/50" />
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-1">Total Earned</p>
+                      <p className="text-3xl font-bold text-primary font-orbitron">
+                        {formatSol(earnings.total)} SOL
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ≈ ${formatUsd(earnings.total)} USD
+                      </p>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Card className="p-6 bg-gradient-to-br from-accent/10 via-card/80 to-card/80 backdrop-blur-sm border-accent/30 hover:border-accent/50 transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
+                          <DollarSign className="w-6 h-6 text-accent" />
+                        </div>
+                        <Sparkles className="w-5 h-5 text-accent/50" />
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
+                      <p className="text-3xl font-bold text-accent font-orbitron">
+                        {formatSol(earnings.pending)} SOL
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ≈ ${formatUsd(earnings.pending)} USD
+                      </p>
+                    </Card>
+                  </motion.div>
+                </div>
+
+                {/* Referral Code Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <Card className="p-8 mb-8 bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-primary/30">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                      </div>
+                      <h2 className="font-orbitron text-2xl font-bold">Your Referral Code</h2>
+                    </div>
+                    
+                    {referralCode ? (
+                      <div className="space-y-4">
+                        <div className="relative p-8 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-xl border-2 border-primary/40">
+                          <p className="text-5xl font-bold font-mono text-center bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                            {referralCode}
+                          </p>
+                        </div>
+                        <Button
+                          onClick={copyCode}
+                          className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
+                          size="lg"
+                        >
+                          <Copy className="w-5 h-5 mr-2" />
+                          Copy Referral Code
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-muted-foreground text-center mb-6">
+                          Create your unique referral code to start earning rewards when others use it
+                        </p>
+                        <div className="flex gap-4">
+                          <Input
+                            value={newCode}
+                            onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                            placeholder="ENTER YOUR CODE"
+                            maxLength={20}
+                            className="flex-1 text-lg py-6 text-center font-mono bg-background/50 border-primary/30"
+                          />
+                          <Button
+                            onClick={createReferralCode}
+                            disabled={!newCode}
+                            className="bg-primary hover:bg-primary/90 px-8 py-6"
+                            size="lg"
+                          >
+                            Create
+                          </Button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
+                    )}
+                  </Card>
+                </motion.div>
 
-              {/* Debug Info */}
-              <Card className="p-4 mt-8 bg-card/50 backdrop-blur-sm border-muted">
-                <details>
-                  <summary className="cursor-pointer text-sm text-muted-foreground">
-                    Debug Info
-                  </summary>
-                  <div className="mt-4 space-y-2 text-xs font-mono">
-                    <p>Wallet: {publicKey.toString()}</p>
-                    <p>Referral Code: {referralCode || 'None'}</p>
-                    <p>Referrals Count: {referrals.length}</p>
-                    <p>Total Earned: {earnings.total} lamports</p>
-                    <p>Pending: {earnings.pending} lamports</p>
-                    <p>Withdrawn: {earnings.withdrawn} lamports</p>
-                  </div>
-                </details>
-              </Card>
-            </>
-          )}
+                {/* Referrals List */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <Card className="p-8 bg-card/80 backdrop-blur-sm border-primary/30">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-accent" />
+                      </div>
+                      <h2 className="font-orbitron text-2xl font-bold">Your Referrals</h2>
+                    </div>
+                    
+                    {referrals.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                          <Users className="w-8 h-8 text-primary/50" />
+                        </div>
+                        <p className="text-muted-foreground text-lg">
+                          No referrals yet. Share your code to start earning!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {referrals.map((referral, index) => (
+                          <motion.div
+                            key={referral.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.7 + index * 0.05 }}
+                            className="p-5 bg-gradient-to-r from-background/50 to-background/30 rounded-lg border border-primary/20 hover:border-primary/40 transition-all"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <p className="font-mono text-sm text-muted-foreground mb-1">
+                                  {referral.referred_wallet.slice(0, 12)}...{referral.referred_wallet.slice(-12)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Joined {new Date(referral.created_at).toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    year: 'numeric' 
+                                  })}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-2xl font-bold text-primary font-orbitron">
+                                  {referral.tickets_purchased}
+                                </p>
+                                <p className="text-xs text-muted-foreground">tickets</p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </Card>
+                </motion.div>
+              </>
+            )}
+          </motion.div>
         </div>
       </main>
 

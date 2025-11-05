@@ -108,6 +108,22 @@ export function TicketPurchase({ lotteryType, isPreOrder, solPrice, showReferral
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = publicKey;
 
+      // Simulate transaction before sending (Phantom best practice)
+      console.log('🧪 Simulating transaction...');
+      try {
+        const simulationResult = await connection.simulateTransaction(transaction);
+        
+        if (simulationResult.value.err) {
+          console.error('❌ Transaction simulation failed:', simulationResult.value.err);
+          throw new Error(`Transaction will likely fail: ${JSON.stringify(simulationResult.value.err)}`);
+        }
+        
+        console.log('✅ Transaction simulation successful');
+      } catch (simError) {
+        console.warn('⚠️ Simulation check failed, proceeding with transaction:', simError);
+        // Continue with transaction even if simulation fails
+      }
+
       // Send transaction
       console.log('📤 Sending transaction...');
       signature = await sendTransaction(transaction, connection);

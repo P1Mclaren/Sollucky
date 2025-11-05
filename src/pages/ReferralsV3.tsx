@@ -168,11 +168,20 @@ const ReferralsV3 = () => {
   const loadEarnings = async () => {
     if (!publicKey) return;
 
+    console.log('📊 Loading earnings for wallet:', publicKey.toString());
+    
+    // Check current session
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('Current session user_id:', session?.user?.id);
+    console.log('Session wallet:', session?.user?.user_metadata?.wallet_address);
+    
     const { data, error } = await supabase
       .from("referral_earnings")
       .select("*")
       .eq("wallet_address", publicKey.toString())
       .maybeSingle();
+
+    console.log('Earnings query result:', { data, error });
 
     if (!error && data) {
       setTotalEarnedLamports(Number(data.total_earned_lamports));

@@ -261,52 +261,58 @@ export default function ReferralsV4() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <Card className="p-6 mb-6 bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-sm border-primary/30">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-primary" />
-                      </div>
-                      <h2 className="font-orbitron text-xl font-bold">Your Referral Code</h2>
-                    </div>
-                    
-                    {referralCode ? (
-                      <div className="space-y-3">
-                        <div className="relative p-6 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-lg border-2 border-primary/40">
-                          <p className="text-4xl font-bold font-mono text-center bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                            {referralCode}
-                          </p>
+                  <Card className="p-5 mb-6 bg-gradient-to-br from-primary/5 via-accent/5 to-card/80 backdrop-blur-sm border-primary/30 overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 opacity-50" />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                          <Sparkles className="w-4 h-4 text-primary-foreground" />
                         </div>
-                        <Button
-                          onClick={copyCode}
-                          className="w-full bg-primary hover:bg-primary/90"
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copy Referral Code
-                        </Button>
+                        <h2 className="font-orbitron text-lg font-bold">Your Referral Code</h2>
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <p className="text-muted-foreground text-sm text-center mb-4">
-                          Create your unique referral code to start earning rewards
-                        </p>
-                        <div className="flex gap-3">
-                          <Input
-                            value={newCode}
-                            onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                            placeholder="ENTER YOUR CODE"
-                            maxLength={20}
-                            className="flex-1 text-center font-mono bg-background/50 border-primary/30"
-                          />
+                      
+                      {referralCode ? (
+                        <div className="space-y-3">
+                          <div className="relative group">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-xl opacity-75 blur group-hover:opacity-100 transition" />
+                            <div className="relative p-5 bg-card rounded-lg border border-primary/30">
+                              <p className="text-3xl font-bold font-mono text-center tracking-wider bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                                {referralCode}
+                              </p>
+                            </div>
+                          </div>
                           <Button
-                            onClick={createReferralCode}
-                            disabled={!newCode}
-                            className="bg-primary hover:bg-primary/90 px-6"
+                            onClick={copyCode}
+                            className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg"
                           >
-                            Create
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy Code
                           </Button>
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-muted-foreground text-sm text-center">
+                            Create your unique code to start earning
+                          </p>
+                          <div className="flex gap-2">
+                            <Input
+                              value={newCode}
+                              onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                              placeholder="YOUR CODE"
+                              maxLength={20}
+                              className="flex-1 text-center font-mono bg-background/50 border-primary/30 focus:border-primary"
+                            />
+                            <Button
+                              onClick={createReferralCode}
+                              disabled={!newCode}
+                              className="bg-gradient-to-r from-primary to-accent hover:opacity-90 px-5"
+                            >
+                              Create
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </Card>
                 </motion.div>
 
@@ -370,65 +376,6 @@ export default function ReferralsV4() {
                   </Card>
                 </motion.div>
 
-                {/* Referrals List */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <Card className="p-8 bg-card/80 backdrop-blur-sm border-primary/30">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                        <Users className="w-5 h-5 text-accent" />
-                      </div>
-                      <h2 className="font-orbitron text-2xl font-bold">Your Referrals</h2>
-                    </div>
-                    
-                    {referrals.length === 0 ? (
-                      <div className="text-center py-12">
-                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                          <Users className="w-8 h-8 text-primary/50" />
-                        </div>
-                        <p className="text-muted-foreground text-lg">
-                          No referrals yet. Share your code to start earning!
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {referrals.map((referral, index) => (
-                          <motion.div
-                            key={referral.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.7 + index * 0.05 }}
-                            className="p-5 bg-gradient-to-r from-background/50 to-background/30 rounded-lg border border-primary/20 hover:border-primary/40 transition-all"
-                          >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <p className="font-mono text-sm text-muted-foreground mb-1">
-                                  {referral.referred_wallet.slice(0, 12)}...{referral.referred_wallet.slice(-12)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Joined {new Date(referral.created_at).toLocaleDateString('en-US', { 
-                                    month: 'short', 
-                                    day: 'numeric', 
-                                    year: 'numeric' 
-                                  })}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-2xl font-bold text-primary font-orbitron">
-                                  {referral.tickets_purchased}
-                                </p>
-                                <p className="text-xs text-muted-foreground">tickets</p>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </Card>
-                </motion.div>
               </>
             )}
           </motion.div>

@@ -4,28 +4,34 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 
 export function useWalletAuth() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, disconnect } = useWallet();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
-  const [lastWallet, setLastWallet] = useState<string | null>(null);
 
   useEffect(() => {
-    const currentWallet = publicKey?.toString() || null;
+    const handleAuth = async () => {
+      if (connected && publicKey) {
+        // Check if session wallet matches connected wallet
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const sessionWallet = currentSession?.user?.user_metadata?.wallet_address;
+        const connectedWallet = publicKey.toString();
+        
+        if (currentSession && sessionWallet && sessionWallet !== connectedWallet) {
+          console.log('🔄 Wallet mismatch detected. Session:', sessionWallet, 'Connected:', connectedWallet);
+          console.log('🚪 Signing out old session...');
+          await supabase.auth.signOut();
+          setSession(null);
+          // Small delay before re-authenticating
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        authenticateWallet();
+      } else {
+        setSession(null);
+      }
+    };
     
-    // If wallet changed, sign out old session first
-    if (lastWallet && currentWallet && lastWallet !== currentWallet) {
-      console.log('🔄 Wallet changed, signing out old session');
-      supabase.auth.signOut();
-      setSession(null);
-    }
-    
-    if (connected && publicKey) {
-      setLastWallet(currentWallet);
-      authenticateWallet();
-    } else {
-      setSession(null);
-      setLastWallet(null);
-    }
+    handleAuth();
   }, [connected, publicKey]);
 
   const authenticateWallet = async () => {
@@ -33,22 +39,9 @@ export function useWalletAuth() {
 
     setLoading(true);
     try {
-      // Check if we already have a valid session FOR THIS WALLET
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      const sessionWallet = existingSession?.user?.user_metadata?.wallet_address;
       const currentWallet = publicKey.toString();
-      
-      if (existingSession && sessionWallet === currentWallet) {
-        console.log('✅ Existing session found for this wallet');
-        setSession(existingSession);
-        setLoading(false);
-        return;
-      } else if (existingSession && sessionWallet !== currentWallet) {
-        console.log('🔄 Session wallet mismatch, signing out and reauthenticating');
-        await supabase.auth.signOut();
-      }
-
       console.log('🔐 Authenticating wallet:', currentWallet);
+      
       const { data, error } = await supabase.functions.invoke('auth-wallet', {
         body: { walletAddress: currentWallet },
       });
@@ -59,10 +52,11 @@ export function useWalletAuth() {
         return;
       }
 
-      console.log('Auth response:', data);
+      console.log('✅ Auth response:', data);
 
       if (data?.session) {
-        console.log('✅ Session created successfully');
+        const sessionWallet = data.session.user?.user_metadata?.wallet_address;
+        console.log('✅ Session created for wallet:', sessionWallet);
         setSession(data.session);
         // Set the session in Supabase client
         await supabase.auth.setSession({

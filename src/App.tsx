@@ -9,7 +9,7 @@ import { TestModeBanner } from "./components/TestModeBanner";
 import { MetaTags } from "./components/MetaTags";
 import Landing from "./pages/Landing";
 import Profile from "./pages/Profile";
-import ReferralsV3 from "./pages/ReferralsV3";
+import ReferralsV4 from "./pages/ReferralsV4";
 import Admin from "./pages/Admin";
 import AdminV3 from "./pages/AdminV3";
 import NotFound from "./pages/NotFound";
@@ -37,7 +37,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/referrals" element={<ReferralsV3 />} />
+              <Route path="/referrals" element={<ReferralsV4 />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin-v3" element={<AdminV3 />} />
               <Route path="/monthly" element={<MonthlyLottery />} />

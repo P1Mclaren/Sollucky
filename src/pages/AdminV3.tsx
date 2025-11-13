@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2, Clock, Zap, ExternalLink } from 'lucide-react';
+import { DemoModeControls } from '@/components/DemoModeControls';
+import { DemoActivityFeed } from '@/components/DemoActivityFeed';
 
 interface LotteryFinancials {
   lotteryFunds: number;
@@ -323,6 +325,12 @@ export default function AdminV3() {
             </div>
           </Card>
         )}
+
+        {/* Demo Mode Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <DemoModeControls />
+          <DemoActivityFeed />
+        </div>
 
         {/* Monthly Lottery */}
         <Card className="p-6 mb-6 bg-card/30 backdrop-blur-sm border-primary/20">

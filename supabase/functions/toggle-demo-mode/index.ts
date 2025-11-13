@@ -29,23 +29,19 @@ serve(async (req) => {
       });
     }
 
-    // Get user's wallet address
-    const { data: walletData } = await supabaseClient
-      .from('user_wallets')
-      .select('wallet_address')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!walletData) {
-      return new Response(JSON.stringify({ error: 'Wallet not found' }), {
-        status: 404,
+    // Get wallet address from user metadata
+    const adminWallet = user.user_metadata?.wallet_address;
+    
+    if (!adminWallet) {
+      return new Response(JSON.stringify({ error: 'Unauthorized - No wallet address' }), {
+        status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // Check if user is admin
     const { data: isAdmin } = await supabaseClient.rpc('has_role', {
-      _wallet: walletData.wallet_address,
+      _wallet: adminWallet,
       _role: 'admin'
     });
 
@@ -58,15 +54,28 @@ serve(async (req) => {
 
     const { enabled } = await req.json();
 
+    // Get the demo mode state ID
+    const { data: demoState } = await supabaseClient
+      .from('demo_mode_state')
+      .select('id')
+      .single();
+
+    if (!demoState) {
+      return new Response(JSON.stringify({ error: 'Demo mode state not initialized' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Update demo mode state
     const { error: updateError } = await supabaseClient
       .from('demo_mode_state')
       .update({
         is_enabled: enabled,
         updated_at: new Date().toISOString(),
-        updated_by: walletData.wallet_address
+        updated_by: adminWallet
       })
-      .eq('id', (await supabaseClient.from('demo_mode_state').select('id').single()).data?.id);
+      .eq('id', demoState.id);
 
     if (updateError) {
       console.error('Error updating demo mode:', updateError);
@@ -76,7 +85,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Demo mode ${enabled ? 'enabled' : 'disabled'} by ${walletData.wallet_address}`);
+    console.log(`Demo mode ${enabled ? 'enabled' : 'disabled'} by ${adminWallet}`);
 
     return new Response(
       JSON.stringify({ success: true, enabled }),

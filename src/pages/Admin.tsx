@@ -10,6 +10,8 @@ import { Footer } from "@/components/Footer";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { DemoModeControls } from "@/components/DemoModeControls";
+import { DemoActivityFeed } from "@/components/DemoActivityFeed";
 
 const LAMPORTS_PER_SOL = 1000000000;
 
@@ -175,6 +177,12 @@ const Admin = () => {
             <p className="font-orbitron text-2xl font-bold text-accent mb-1">{totalReferrerEarnings.toFixed(2)}</p>
             <p className="text-xs text-muted-foreground">25% to referrers</p>
           </div>
+        </div>
+
+        {/* Demo Mode Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <DemoModeControls />
+          <DemoActivityFeed />
         </div>
 
         <Tabs defaultValue="transactions" className="w-full">

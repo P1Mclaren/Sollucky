@@ -38,6 +38,81 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_mode_state: {
+        Row: {
+          id: string
+          is_enabled: boolean
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: []
+      }
+      demo_transactions: {
+        Row: {
+          created_at: string
+          id: string
+          lottery_type: string
+          ticket_count: number
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lottery_type: string
+          ticket_count: number
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lottery_type?: string
+          ticket_count?: number
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      demo_winners: {
+        Row: {
+          created_at: string
+          id: string
+          lottery_type: string
+          prize_lamports: number
+          prize_tier: string
+          show_on_wall_of_fame: boolean | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lottery_type: string
+          prize_lamports: number
+          prize_tier: string
+          show_on_wall_of_fame?: boolean | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lottery_type?: string
+          prize_lamports?: number
+          prize_tier?: string
+          show_on_wall_of_fame?: boolean | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       fund_splits: {
         Row: {
           created_at: string

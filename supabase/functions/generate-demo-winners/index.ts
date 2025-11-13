@@ -18,13 +18,21 @@ function generateRandomWallet(): string {
 }
 
 function getPrizeForType(lotteryType: string): number {
-  // Returns lamports
-  const prizes = {
-    monthly: 100 * 1000000000, // 100 SOL
-    weekly: 20 * 1000000000,   // 20 SOL
-    daily: 3 * 1000000000      // 3 SOL
+  // Returns lamports with random variation
+  const baseRanges = {
+    monthly: { min: 50, max: 150 },   // 50-150 SOL
+    weekly: { min: 10, max: 30 },     // 10-30 SOL
+    daily: { min: 1, max: 5 }         // 1-5 SOL
   };
-  return prizes[lotteryType as keyof typeof prizes] || 1000000000;
+  
+  const range = baseRanges[lotteryType as keyof typeof baseRanges] || { min: 1, max: 5 };
+  
+  // Generate random SOL amount with 4 decimal places
+  const randomSOL = Math.random() * (range.max - range.min) + range.min;
+  const solWithDecimals = Math.floor(randomSOL * 10000) / 10000;
+  
+  // Convert to lamports (1 SOL = 1,000,000,000 lamports)
+  return Math.floor(solWithDecimals * 1000000000);
 }
 
 serve(async (req) => {

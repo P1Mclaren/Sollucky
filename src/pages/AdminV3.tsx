@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { Loader2, Clock, Zap, ExternalLink } from 'lucide-react';
 import { DemoModeControls } from '@/components/DemoModeControls';
 import { DemoActivityFeed } from '@/components/DemoActivityFeed';
+import { GenerateDemoWinnerButton } from '@/components/GenerateDemoWinnerButton';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 interface LotteryFinancials {
   lotteryFunds: number;
@@ -27,6 +29,7 @@ interface NextDraw {
 export default function AdminV3() {
   const navigate = useNavigate();
   const { publicKey } = useWallet();
+  const { isDemoMode } = useDemoMode();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [drawing, setDrawing] = useState<string | null>(null);
@@ -345,18 +348,21 @@ export default function AdminV3() {
                 </p>
               )}
             </div>
-            <Button 
-              onClick={() => handleDrawNow('monthly')}
-              disabled={drawing === 'monthly'}
-              className="gap-2 bg-gradient-to-r from-primary to-purple-500"
-            >
-              {drawing === 'monthly' ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Zap className="w-4 h-4" />
-              )}
-              Draw Now
-            </Button>
+            <div className="flex gap-2">
+              {isDemoMode && <GenerateDemoWinnerButton lotteryType="monthly" />}
+              <Button 
+                onClick={() => handleDrawNow('monthly')}
+                disabled={drawing === 'monthly'}
+                className="gap-2 bg-gradient-to-r from-primary to-purple-500"
+              >
+                {drawing === 'monthly' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4" />
+                )}
+                Draw Now
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -413,19 +419,22 @@ export default function AdminV3() {
                   </p>
                 )}
               </div>
-              <Button 
-                onClick={() => handleDrawNow('weekly')}
-                disabled={drawing === 'weekly'}
-                size="sm"
-                className="gap-2 bg-gradient-to-r from-primary to-purple-500"
-              >
-                {drawing === 'weekly' ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Zap className="w-4 h-4" />
-                )}
-                Draw
-              </Button>
+              <div className="flex gap-2">
+                {isDemoMode && <GenerateDemoWinnerButton lotteryType="weekly" />}
+                <Button 
+                  onClick={() => handleDrawNow('weekly')}
+                  disabled={drawing === 'weekly'}
+                  size="sm"
+                  className="gap-2 bg-gradient-to-r from-primary to-purple-500"
+                >
+                  {drawing === 'weekly' ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4" />
+                  )}
+                  Draw
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
@@ -466,19 +475,22 @@ export default function AdminV3() {
                   </p>
                 )}
               </div>
-              <Button 
-                onClick={() => handleDrawNow('daily')}
-                disabled={drawing === 'daily'}
-                size="sm"
-                className="gap-2 bg-gradient-to-r from-primary to-pink-500"
-              >
-                {drawing === 'daily' ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Zap className="w-4 h-4" />
-                )}
-                Draw
-              </Button>
+              <div className="flex gap-2">
+                {isDemoMode && <GenerateDemoWinnerButton lotteryType="daily" />}
+                <Button 
+                  onClick={() => handleDrawNow('daily')}
+                  disabled={drawing === 'daily'}
+                  size="sm"
+                  className="gap-2 bg-gradient-to-r from-primary to-pink-500"
+                >
+                  {drawing === 'daily' ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4" />
+                  )}
+                  Draw
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">

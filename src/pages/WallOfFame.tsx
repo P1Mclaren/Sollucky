@@ -3,11 +3,34 @@ import { Footer } from '@/components/Footer';
 import { Trophy, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 const WallOfFame = () => {
+  const { isDemoMode } = useDemoMode();
+
   const { data: winners, isLoading } = useQuery({
-    queryKey: ['winners'],
+    queryKey: ['winners', isDemoMode],
     queryFn: async () => {
+      if (isDemoMode) {
+        // Fetch demo winners
+        const { data, error } = await supabase
+          .from('demo_winners')
+          .select('*')
+          .eq('prize_tier', 'jackpot')
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+        return data?.map(w => ({
+          ...w,
+          lottery_draws: {
+            lottery_type: w.lottery_type,
+            draw_date: w.created_at
+          }
+        })) || [];
+      }
+
+      // Fetch real winners
       const { data, error } = await supabase
         .from('lottery_winners')
         .select(`

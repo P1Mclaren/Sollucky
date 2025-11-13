@@ -3,6 +3,7 @@ import { Trophy, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { motion } from 'framer-motion';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 
 interface JackpotDisplayProps {
   lotteryType: 'monthly' | 'weekly' | 'daily';
@@ -14,6 +15,7 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrde
   const [prizePool, setPrizePool] = useState<number>(0);
   const [ticketsSold, setTicketsSold] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const { isDemoMode } = useDemoMode();
 
   // Example prize pools for pre-order display (realistic for new platform)
   const examplePrizePools = {
@@ -31,8 +33,25 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrde
       return;
     }
 
-    // After launch, fetch real prize pool
+    // Fetch prize pool data
     const fetchPrizePool = async () => {
+      // In demo mode, get aggregated demo transaction data
+      if (isDemoMode) {
+        const { data: demoTransactions } = await supabase
+          .from('demo_transactions')
+          .select('ticket_count')
+          .eq('lottery_type', lotteryType);
+
+        const totalTickets = demoTransactions?.reduce((sum, t) => sum + t.ticket_count, 0) || 0;
+        const estimatedPool = totalTickets * 0.1; // 0.1 SOL per ticket average
+
+        setPrizePool(estimatedPool);
+        setTicketsSold(totalTickets);
+        setLoading(false);
+        return;
+      }
+
+      // Normal mode - fetch real data
       const { data: draw } = await supabase
         .from('lottery_draws')
         .select('total_pool_lamports, total_tickets_sold')
@@ -52,29 +71,51 @@ export function JackpotDisplay({ lotteryType, accentColor = 'primary', isPreOrde
     fetchPrizePool();
 
     // Set up realtime subscription for updates
-    const channel = supabase
-      .channel('prize-pool-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'lottery_draws',
-          filter: `lottery_type=eq.${lotteryType}`,
-        },
-        (payload: any) => {
-          if (payload.new) {
-            setPrizePool(payload.new.total_pool_lamports / LAMPORTS_PER_SOL);
-            setTicketsSold(payload.new.total_tickets_sold || 0);
+    if (isDemoMode) {
+      const channel = supabase
+        .channel('demo-transactions-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'demo_transactions',
+            filter: `lottery_type=eq.${lotteryType}`,
+          },
+          () => {
+            fetchPrizePool();
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [lotteryType, isPreOrder]);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      const channel = supabase
+        .channel('prize-pool-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'lottery_draws',
+            filter: `lottery_type=eq.${lotteryType}`,
+          },
+          (payload: any) => {
+            if (payload.new) {
+              setPrizePool(payload.new.total_pool_lamports / LAMPORTS_PER_SOL);
+              setTicketsSold(payload.new.total_tickets_sold || 0);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [lotteryType, isPreOrder, isDemoMode]);
 
   const colorClasses = {
     primary: {
